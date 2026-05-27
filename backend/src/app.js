@@ -2,6 +2,10 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
+import healthRoutes from "./routes/health.routes.js";
+import notFoundHandler from "./middlewares/notFound.middleware.js";
+import errorMiddleware from "./middlewares/error.middleware.js";
+
 const app = express();
 
 app.use(
@@ -22,14 +26,8 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Backend health check passed",
-    app: "Hirenix AI",
-    tagline: "Intelligent Placement Preparation Platform",
-    timestamp: new Date().toISOString(),
-  });
-});
+app.use("/api/health",healthRoutes);
+app.use(notFoundHandler);
+app.use(errorMiddleware);
 
 export default app;
