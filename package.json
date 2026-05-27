@@ -1,0 +1,25 @@
+{
+  "name": "hirenix-ai",
+  "version": "1.0.0",
+  "description": "Hirenix AI is an intelligent MERN stack placement preparation platform for personalized roadmaps, resume analysis, DSA tracking, mock interviews, aptitude practice, and placement readiness scoring.",
+  "main": "index.js",
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run frontend\" \"npm run backend\""
+  },
+  "keywords": [
+    "mern",
+    "ai",
+    "placement-preparation",
+    "resume-analyzer",
+    "mock-interview",
+    "dsa-tracker",
+    "career-preparation"
+  ],
+  "author": "Aditya Kumar Singh",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
