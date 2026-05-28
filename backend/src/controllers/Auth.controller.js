@@ -123,63 +123,58 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {user:req.user,}, "Current user fetched successfully"));
 });
 
-export const updateUserProfile = asyncHandler(async(req , res)=>{
-    const {fullName,email,college,branch,graduationYear,targetRole,targetCompanies,skills,currentPreparationLevel} = req.body;
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const {
+    college,
+    branch,
+    graduationYear,
+    targetRole,
+    targetCompanies,
+    skills,
+    currentPreparationLevel,
+  } = req.body;
 
-    const allowedPreparationLevels = ["beginner", "intermediate", "advanced"];
+  const user = await User.findById(req.user._id);
 
-    if(!fullName &&
-    !email &&
-    !college &&
-    !branch &&
-    !graduationYear &&
-    !targetRole &&
-    !targetCompanies &&
-    !skills &&
-    !currentPreparationLevel ){
-        throw new ApiError(400 , "please provide at least one field to update");
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
 
-    }
-    const user = await User.findById(req.user._id);
+  if (college !== undefined) user.college = college;
+  if (branch !== undefined) user.branch = branch;
+  if (graduationYear !== undefined) user.graduationYear = graduationYear;
+  if (targetRole !== undefined) user.targetRole = targetRole;
+  if (targetCompanies !== undefined) user.targetCompanies = targetCompanies;
+  if (skills !== undefined) user.skills = skills;
+  if (currentPreparationLevel !== undefined) {
+    user.currentPreparationLevel = currentPreparationLevel;
+  }
 
-    if(!user){
-        throw new ApiError(404, "User not found");
-    }
-    if(email && email !== user.email){
-        const existingUser = await User.findOne({email});
+  const requiredFields = [
+    user.college,
+    user.branch,
+    user.graduationYear,
+    user.targetRole,
+    user.currentPreparationLevel,
+  ];
 
-        if(existingUser){
-            throw new ApiError(409, "Email is already taken");
-        }
-        user.email = email;
-    }
-    if(fullName) user.fullName = fullName;
-    if(college) user.college = college;
-    if(branch) user.branch = branch;
-    if(graduationYear) user.graduationYear = graduationYear
-    if(targetRole) user.targetRole = targetRole;
+  const hasTargetCompanies =
+    Array.isArray(user.targetCompanies) && user.targetCompanies.length > 0;
 
-    if(targetCompanies){
-        if(!Array.isArray(targetCompanies)){
-            throw new ApiError(400, "target companies must be an array")
-        }
-        user.targetCompanies = targetCompanies;
-    }
-    if(skills){
-        if(!Array.isArray(skills)){
-            throw new ApiError(400, "skills must be an array");
-        }
-        user.skills = skills;
-    }
-    if(currentPreparationLevel){
-      if(!allowedPreparationLevels.includes(currentPreparationLevel)){
-        throw new ApiError(400 , "currentPreparationLevel must be beginner, intermediate, or advanced");
-      }
-      user.currentPreparationLevel = currentPreparationLevel;
-    }
-    const updateUser = await user.save();
+  const hasSkills = Array.isArray(user.skills) && user.skills.length > 0;
 
-    const safeUser = await User.findById(updateUser._id).select("-password");
+  user.isProfileCompleted =
+    requiredFields.every(Boolean) && hasTargetCompanies && hasSkills;
 
-    return res.status(200).json(new ApiResponse(200 , {user:safeUser,}, "profile updated successfully"));
+  const updatedUser = await user.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        sanitizeUser(updatedUser),
+        "Profile updated successfully"
+      )
+    );
 });

@@ -4,6 +4,8 @@ import Dashboard from "./pages/Dashboard";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 
 function App() {
   return (
@@ -21,6 +23,14 @@ function App() {
             <Dashboard />
           </ProtectedRoute>
         }
+      />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/edit-profile"
+             element={
+              <ProtectedRoute>
+                <EditProfile/>
+              </ProtectedRoute>
+             }
       />
     </Routes>
   );

@@ -4,6 +4,7 @@ import {
   loginUserApi,
   logoutUserApi,
   registerUserApi,
+  updateUserProfileApi,
 } from "../api/auth.api";
 
 const AuthContext = createContext(null);
@@ -60,6 +61,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (profileData) => {
+    const data = await updateUserProfileApi(profileData);
+    setUser(data.data);
+    return data;
+  };
+
   useEffect(() => {
     if (accessToken) {
       getCurrentUser();
@@ -75,6 +82,8 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
+    getCurrentUser,
+    updateProfile,
     isAuthenticated: Boolean(user),
   };
 

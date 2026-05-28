@@ -17,4 +17,11 @@ export const logoutUserApi = async () =>{
 
 export const getCurrentUserApi = async () =>{
     const response = await api.get("auth/me");
+    return response.data;
 };
+
+export const updateUserProfileApi = async (profileData) => {
+    const response = await api.put("/auth/profile", profileData);
+    return response.data;
+
+}

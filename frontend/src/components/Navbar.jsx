@@ -27,11 +27,12 @@ const Navbar = () => {
               >
                 Dashboard
               </Link>
-
+              <Link to="/Profile">
               <div className="hidden md:flex items-center gap-2 text-sm text-slate-300">
                 <User size={16} />
                 <span>{user?.fullName}</span>
               </div>
+              </Link>
 
               <button
                 onClick={handleLogout}

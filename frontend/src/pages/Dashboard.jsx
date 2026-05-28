@@ -1,8 +1,13 @@
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
+
+  const profileCompletionText = user?.isProfileCompleted
+    ? "Profile completed"
+    : "Complete your profile";
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
@@ -39,9 +44,17 @@ const Dashboard = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <p className="text-sm text-slate-400">Mock Interviews</p>
-            <h2 className="text-3xl font-bold mt-2">0</h2>
-            <p className="text-xs text-slate-500 mt-2">Completed</p>
+            <p className="text-sm text-slate-400">Profile Status</p>
+            <h2
+              className={`text-2xl font-bold mt-2 ${
+                user?.isProfileCompleted ? "text-green-300" : "text-yellow-300"
+              }`}
+            >
+              {user?.isProfileCompleted ? "Done" : "Pending"}
+            </h2>
+            <p className="text-xs text-slate-500 mt-2">
+              {profileCompletionText}
+            </p>
           </div>
         </section>
 
@@ -71,20 +84,45 @@ const Dashboard = () => {
                 {user?.currentPreparationLevel || "beginner"}
               </p>
             </div>
+
+            <Link
+              to="/profile"
+              className="mt-6 inline-block rounded-xl border border-slate-700 px-5 py-3 font-semibold text-slate-300 hover:bg-slate-800"
+            >
+              View Full Profile
+            </Link>
           </div>
 
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
             <h2 className="text-xl font-semibold mb-4">Today's AI Suggestion</h2>
 
-            <p className="text-slate-300">
-              Complete your profile first. After that Hirenix AI will generate a
-              personalized placement roadmap based on your target role, skills,
-              and preparation level.
-            </p>
+            {user?.isProfileCompleted ? (
+              <>
+                <p className="text-slate-300">
+                  Great! Your profile is complete. Next, Hirenix AI can generate
+                  your personalized placement roadmap.
+                </p>
 
-            <button className="mt-6 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700">
-              Complete Profile
-            </button>
+                <button className="mt-6 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700">
+                  Generate AI Roadmap
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-slate-300">
+                  Complete your profile first. After that Hirenix AI will
+                  generate a personalized placement roadmap based on your target
+                  role, skills, and preparation level.
+                </p>
+
+                <Link
+                  to="/edit-profile"
+                  className="mt-6 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                >
+                  Complete Profile
+                </Link>
+              </>
+            )}
           </div>
         </section>
       </main>
