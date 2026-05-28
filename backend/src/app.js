@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes.js"
 import healthRoutes from "./routes/health.routes.js";
 import notFoundHandler from "./middlewares/notFound.middleware.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
+import roadmapRoutes from "./routes/roadmap.routes.js";
 
 const app = express();
 
@@ -28,7 +29,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/health",healthRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/roadmaps", roadmapRoutes);
 
 app.use(notFoundHandler);
 app.use(errorMiddleware);

@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -15,6 +15,10 @@ const Register = () => {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if(isAuthenticated){
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleChange = (e) => {
     setError("");

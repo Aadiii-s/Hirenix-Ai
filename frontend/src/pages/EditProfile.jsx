@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
+import MobileHeader from "../components/MobileHeader";
 
 const EditProfile = () => {
   const { user, updateProfile } = useAuth();
@@ -77,6 +78,10 @@ const EditProfile = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white lg:flex">
       <Sidebar />
+
+      <div className="lg:hidden">
+        <MobileHeader/>
+      </div>
 
       <main className="flex-1 px-6 py-6 lg:px-8">
         <div className="mx-auto max-w-4xl">

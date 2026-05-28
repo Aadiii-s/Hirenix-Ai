@@ -9,12 +9,15 @@ import {
   Target,
   Trophy,
   User,
+  Code2,
+  MessageSquare,
 } from "lucide-react";
 
 import DashboardCard from "../components/DashboardCard";
+import ModuleCard from "../components/ModuleCard";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
-
+import MobileHeader from "../components/MobileHeader";
 const Dashboard = () => {
   const { user } = useAuth();
 
@@ -85,7 +88,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
+  <Sidebar />
+
+  <div className="lg:hidden">
+    <MobileHeader />
+  </div>
 
       <main className="flex-1 px-6 py-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -163,51 +170,19 @@ const Dashboard = () => {
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {modules.map((module) => {
-                  const Icon = module.icon;
-
-                  return (
-                    <div
-                      key={module.title}
-                      className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
-                    >
-                      <div className="mb-4 flex items-start justify-between gap-4">
-                        <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
-                          <Icon size={22} />
-                        </div>
-
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${
-                            module.status === "Ready"
-                              ? "bg-green-500/10 text-green-300"
-                              : "bg-slate-800 text-slate-400"
-                          }`}
-                        >
-                          {module.status}
-                        </span>
-                      </div>
-
-                      <h3 className="text-lg font-semibold">{module.title}</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-400">
-                        {module.description}
-                      </p>
-
-                      {module.status === "Ready" ? (
-                        <button className="mt-5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold hover:bg-blue-700">
-                          Start Module
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          className="mt-5 cursor-not-allowed rounded-xl border border-slate-800 px-4 py-2 text-sm text-slate-500"
-                        >
-                          Locked
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+                {modules.map((module) => (
+                  <ModuleCard
+                    key={module.title}
+                    title={module.title}
+                    description={module.description}
+                    icon={module.icon}
+                    status={module.status}
+                    buttonText={module.buttonText}
+                    locked={module.locked}
+                  />
+                ))}
               </div>
+
             </div>
 
             <div className="space-y-5">

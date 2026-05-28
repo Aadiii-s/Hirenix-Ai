@@ -9,70 +9,96 @@ import {
 
 const AuthContext = createContext(null);
 
+const getStoredToken = () => {
+  return localStorage.getItem("hirenix_token");
+};
+
+const saveToken = (token) => {
+  localStorage.setItem("hirenix_token", token);
+};
+
+const removeToken = () => {
+  localStorage.removeItem("hirenix_token");
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [accessToken, setAccessToken] = useState(
-    localStorage.getItem("hirenix_token") || null
-  );
+  const [accessToken, setAccessToken] = useState(getStoredToken);
   const [loading, setLoading] = useState(true);
 
   const register = async (formData) => {
-    const data = await registerUserApi(formData);
+    const response = await registerUserApi(formData);
 
-    setUser(data.data.user);
-    setAccessToken(data.data.accessToken);
-    localStorage.setItem("hirenix_token", data.data.accessToken);
+    const token = response.data.accessToken;
+    const currentUser = response.data.user;
 
-    return data;
+    saveToken(token);
+    setAccessToken(token);
+    setUser(currentUser);
+
+    return response;
   };
 
   const login = async (formData) => {
-    const data = await loginUserApi(formData);
+    const response = await loginUserApi(formData);
 
-    setUser(data.data.user);
-    setAccessToken(data.data.accessToken);
-    localStorage.setItem("hirenix_token", data.data.accessToken);
+    const token = response.data.accessToken;
+    const currentUser = response.data.user;
 
-    return data;
+    saveToken(token);
+    setAccessToken(token);
+    setUser(currentUser);
+
+    return response;
   };
 
   const logout = async () => {
     try {
       await logoutUserApi();
     } catch (error) {
-      console.log("Logout API error:", error);
+      console.log("Logout API error:", error.response?.data || error);
     } finally {
-      setUser(null);
+      removeToken();
       setAccessToken(null);
-      localStorage.removeItem("hirenix_token");
+      setUser(null);
     }
   };
 
   const getCurrentUser = async () => {
     try {
-      const data = await getCurrentUserApi();
-      setUser(data.data);
+      const token = getStoredToken();
+
+      if (!token) {
+        setAccessToken(null);
+        setUser(null);
+        return;
+      }
+
+      const response = await getCurrentUserApi();
+
+      setAccessToken(token);
+      setUser(response.data);
     } catch (error) {
-      setUser(null);
+      console.log("Get current user error:", error.response?.data || error);
+
+      removeToken();
       setAccessToken(null);
-      localStorage.removeItem("hirenix_token");
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
   const updateProfile = async (profileData) => {
-    const data = await updateUserProfileApi(profileData);
-    setUser(data.data);
-    return data;
+    const response = await updateUserProfileApi(profileData);
+
+    setUser(response.data);
+
+    return response;
   };
 
   useEffect(() => {
-    if (accessToken) {
-      getCurrentUser();
-    } else {
-      setLoading(false);
-    }
+    getCurrentUser();
   }, []);
 
   const value = {
@@ -84,7 +110,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     getCurrentUser,
     updateProfile,
-    isAuthenticated: Boolean(user),
+    isAuthenticated: Boolean(user && accessToken),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,15 +1,12 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import LoadingScreen from "./LoadingScreen";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
-        <p className="text-slate-300">Checking authentication...</p>
-      </div>
-    );
+    return <LoadingScreen message="Checking authentication..." />;
   }
 
   if (!isAuthenticated) {

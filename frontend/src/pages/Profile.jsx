@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
+import MobileHeader from "../components/MobileHeader";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -61,6 +62,10 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white lg:flex">
       <Sidebar />
+
+      <div className="lg:hidden">
+        <MobileHeader/>
+      </div>
 
       <main className="flex-1 px-6 py-6 lg:px-8">
         <div className="mx-auto max-w-7xl">

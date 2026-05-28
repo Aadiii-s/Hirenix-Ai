@@ -118,9 +118,21 @@ export const logoutUser = asyncHandler(async (req, res) => {
 });
 
 export const getCurrentUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
   return res
     .status(200)
-    .json(new ApiResponse(200, {user:req.user,}, "Current user fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        sanitizeUser(user),
+        "Current user fetched successfully"
+      )
+    );
 });
 
 export const updateUserProfile = asyncHandler(async (req, res) => {

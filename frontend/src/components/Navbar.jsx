@@ -3,8 +3,19 @@ import { LogOut, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, loading } = useAuth();
   const navigate = useNavigate();
+
+  if (loading) {
+  return (
+    <header className="border-b border-slate-800 bg-slate-950 text-white">
+      <nav className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
+        <span className="text-xl font-bold">Hirenix AI</span>
+        <span className="text-sm text-slate-400">Loading...</span>
+      </nav>
+    </header>
+  );
+}
 
   const handleLogout = async () => {
     await logout();
