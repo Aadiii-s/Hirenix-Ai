@@ -1,294 +1,187 @@
 import { Link } from "react-router-dom";
-import {
-  User,
-  Mail,
-  GraduationCap,
-  Building2,
-  Calendar,
-  Target,
-  Briefcase,
-  Code2,
-  CheckCircle,
-  AlertCircle,
-  Edit,
-} from "lucide-react";
-
+import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
   const { user } = useAuth();
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-slate-400">Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
+  const calculateProfileStrength = () => {
+    let score = 0;
 
-  const isProfileCompleted =
-    user?.fullName &&
-    user?.email &&
-    user?.college &&
-    user?.branch &&
-    user?.graduationYear &&
-    user?.targetRole &&
-    user?.targetCompanies?.length > 0 &&
-    user?.skills?.length > 0 &&
-    user?.currentPreparationLevel;
+    if (user?.fullName) score += 10;
+    if (user?.email) score += 10;
+    if (user?.college) score += 10;
+    if (user?.branch) score += 10;
+    if (user?.graduationYear) score += 10;
+    if (user?.targetRole) score += 15;
+    if (user?.targetCompanies?.length > 0) score += 15;
+    if (user?.skills?.length > 0) score += 15;
+    if (user?.currentPreparationLevel) score += 5;
 
-  const profileFields = [
+    return score;
+  };
+
+  const profileStrength = calculateProfileStrength();
+
+  const profileItems = [
     {
       label: "Full Name",
-      value: user?.fullName || "Not added yet",
-      icon: User,
+      value: user?.fullName || "Not added",
     },
     {
       label: "Email",
-      value: user?.email || "Not added yet",
-      icon: Mail,
+      value: user?.email || "Not added",
     },
     {
       label: "College",
-      value: user?.college || "Not added yet",
-      icon: Building2,
+      value: user?.college || "Not added",
     },
     {
       label: "Branch",
-      value: user?.branch || "Not added yet",
-      icon: GraduationCap,
+      value: user?.branch || "Not added",
     },
     {
       label: "Graduation Year",
-      value: user?.graduationYear || "Not added yet",
-      icon: Calendar,
+      value: user?.graduationYear || "Not added",
     },
     {
       label: "Target Role",
-      value: user?.targetRole || "Not added yet",
-      icon: Target,
+      value: user?.targetRole || "Not added",
     },
     {
       label: "Current Preparation Level",
-      value: user?.currentPreparationLevel || "Not added yet",
-      icon: Briefcase,
+      value: user?.currentPreparationLevel || "beginner",
+    },
+    {
+      label: "Profile Completed",
+      value: user?.isProfileCompleted ? "Completed" : "Incomplete",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 px-6 py-10 text-white">
-      <div className="mx-auto max-w-6xl">
-        {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              My Profile
-            </h1>
+    <div className="min-h-screen bg-slate-950 text-white lg:flex">
+      <Sidebar />
 
-            <p className="mt-2 text-sm text-slate-400">
-              This profile helps Hirenix AI personalize your placement
-              preparation journey.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${
-                isProfileCompleted
-                  ? "bg-green-500/10 text-green-400"
-                  : "bg-yellow-500/10 text-yellow-400"
-              }`}
-            >
-              {isProfileCompleted ? (
-                <CheckCircle size={18} />
-              ) : (
-                <AlertCircle size={18} />
-              )}
-
-              <span>
-                {isProfileCompleted ? "Profile Completed" : "Profile Incomplete"}
-              </span>
+      <main className="flex-1 px-6 py-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-blue-400 font-medium mb-2">Student Profile</p>
+              <h1 className="text-4xl font-bold">Your Placement Profile</h1>
+              <p className="text-slate-400 mt-2">
+                This information will be used by Hirenix AI to generate your
+                personalized placement roadmap.
+              </p>
             </div>
 
             <Link
               to="/edit-profile"
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+              className="rounded-xl bg-blue-600 px-5 py-3 text-center font-semibold hover:bg-blue-700"
             >
-              <Edit size={16} />
               Edit Profile
             </Link>
           </div>
-        </div>
 
-        {/* Main Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Left Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg lg:col-span-1">
-            <div className="flex flex-col items-center text-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 text-3xl font-bold text-white">
-                {user?.fullName
-                  ? user.fullName
-                      .split(" ")
-                      .map((name) => name[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()
-                  : "U"}
-              </div>
+          <section className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:col-span-2">
+              <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-blue-600 text-2xl font-bold">
+                  {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                </div>
 
-              <h2 className="mt-4 text-xl font-semibold">
-                {user?.fullName || "User"}
-              </h2>
+                <div>
+                  <h2 className="text-2xl font-bold">{user?.fullName}</h2>
+                  <p className="text-slate-400">{user?.email}</p>
 
-              <p className="mt-1 text-sm text-slate-400">
-                {user?.email || "No email added"}
-              </p>
-
-              <div className="mt-5 w-full rounded-xl border border-slate-800 bg-slate-950 p-4">
-                <p className="text-sm text-slate-400">Target Role</p>
-                <p className="mt-1 font-medium">
-                  {user?.targetRole || "Not added yet"}
-                </p>
-              </div>
-
-              <div className="mt-4 w-full rounded-xl border border-slate-800 bg-slate-950 p-4">
-                <p className="text-sm text-slate-400">Preparation Level</p>
-                <p className="mt-1 capitalize font-medium">
-                  {user?.currentPreparationLevel || "Not added yet"}
-                </p>
+                  <span
+                    className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-medium ${
+                      user?.isProfileCompleted
+                        ? "bg-green-500/10 text-green-300"
+                        : "bg-yellow-500/10 text-yellow-300"
+                    }`}
+                  >
+                    {user?.isProfileCompleted
+                      ? "Profile Completed"
+                      : "Profile Incomplete"}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Profile Details */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg lg:col-span-2">
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold">Profile Details</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Your academic and placement preparation information.
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <p className="text-sm text-slate-400">Profile Strength</p>
+              <h2 className="mt-2 text-4xl font-bold">{profileStrength}%</h2>
+
+              <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-800">
+                <div
+                  className="h-full rounded-full bg-blue-600"
+                  style={{ width: `${profileStrength}%` }}
+                />
+              </div>
+
+              <p className="mt-3 text-xs text-slate-500">
+                Complete all fields to unlock better AI recommendations.
               </p>
             </div>
+          </section>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              {profileFields.map((field) => {
-                const Icon = field.icon;
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {profileItems.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-slate-800 bg-slate-900 p-5"
+              >
+                <p className="text-sm text-slate-400">{item.label}</p>
+                <p className="mt-2 text-lg font-semibold capitalize">
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </section>
 
-                return (
-                  <div
-                    key={field.label}
-                    className="rounded-xl border border-slate-800 bg-slate-950 p-4"
-                  >
-                    <div className="mb-3 flex items-center gap-2 text-sm text-slate-400">
-                      <Icon size={16} />
-                      <span>{field.label}</span>
-                    </div>
+          <section className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+              <p className="text-sm text-slate-400 mb-3">Target Companies</p>
 
-                    <p className="font-medium capitalize text-slate-100">
-                      {field.value}
-                    </p>
-                  </div>
-                );
-              })}
+              {user?.targetCompanies?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {user.targetCompanies.map((company) => (
+                    <span
+                      key={company}
+                      className="rounded-full bg-blue-500/10 px-3 py-1 text-sm text-blue-300"
+                    >
+                      {company}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-300">Not added</p>
+              )}
             </div>
-          </div>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+              <p className="text-sm text-slate-400 mb-3">Skills</p>
+
+              {user?.skills?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {user.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="rounded-full bg-purple-500/10 px-3 py-1 text-sm text-purple-300"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-300">Not added</p>
+              )}
+            </div>
+          </section>
         </div>
-
-        {/* Companies and Skills */}
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          {/* Target Companies */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg">
-            <div className="mb-5 flex items-center gap-2">
-              <Briefcase className="text-blue-400" size={20} />
-              <div>
-                <h2 className="text-xl font-semibold">Target Companies</h2>
-                <p className="text-sm text-slate-400">
-                  Companies you are preparing for.
-                </p>
-              </div>
-            </div>
-
-            {user?.targetCompanies?.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {user.targetCompanies.map((company) => (
-                  <span
-                    key={company}
-                    className="rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300"
-                  >
-                    {company}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-slate-700 p-5 text-center text-sm text-slate-400">
-                No target companies added yet.
-              </div>
-            )}
-          </div>
-
-          {/* Skills */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-lg">
-            <div className="mb-5 flex items-center gap-2">
-              <Code2 className="text-purple-400" size={20} />
-              <div>
-                <h2 className="text-xl font-semibold">Skills</h2>
-                <p className="text-sm text-slate-400">
-                  Skills you are currently building.
-                </p>
-              </div>
-            </div>
-
-            {user?.skills?.length > 0 ? (
-              <div className="flex flex-wrap gap-3">
-                {user.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-2 text-sm font-medium text-purple-300"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-dashed border-slate-700 p-5 text-center text-sm text-slate-400">
-                No skills added yet.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Profile Completion Guidance */}
-        {!isProfileCompleted && (
-          <div className="mt-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="mt-1 text-yellow-400" size={22} />
-
-              <div>
-                <h3 className="font-semibold text-yellow-300">
-                  Complete your profile
-                </h3>
-
-                <p className="mt-1 text-sm text-yellow-100/80">
-                  Add your college, branch, graduation year, target role,
-                  companies, skills, and preparation level to unlock better AI
-                  recommendations.
-                </p>
-
-                <Link
-                  to="/edit-profile"
-                  className="mt-4 inline-flex rounded-lg bg-yellow-500 px-4 py-2 text-sm font-medium text-slate-950 transition hover:bg-yellow-400"
-                >
-                  Complete Profile
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   );
 };
 
 export default Profile;
-
