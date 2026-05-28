@@ -47,6 +47,30 @@ const MobileHeader = () => {
 
       <div className="flex gap-3 overflow-x-auto px-5 pb-4 text-sm">
   <NavLink
+    to="/roadmap"
+    className={({ isActive }) =>
+      `whitespace-nowrap rounded-full px-4 py-2 transition ${
+        isActive
+          ? "bg-blue-600 text-white"
+          : "bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+      }`
+    }
+  >
+    Roadmap
+  </NavLink>
+  <NavLink
+    to="/roadmaps"
+    className={({ isActive }) =>
+      `whitespace-nowrap rounded-full px-4 py-2 transition ${
+        isActive
+          ? "bg-blue-600 text-white"
+          : "bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+      }`
+    }
+  >
+    History
+  </NavLink>
+  <NavLink
     to="/dashboard"
     className={({ isActive }) =>
       `whitespace-nowrap rounded-full px-4 py-2 transition ${

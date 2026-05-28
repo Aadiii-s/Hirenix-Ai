@@ -3,6 +3,7 @@ import {
   BarChart3,
   BookOpen,
   Brain,
+  CalendarDays,
   FileText,
   Home,
   LogOut,
@@ -31,7 +32,13 @@ const Sidebar = () => {
       label: "AI Roadmap",
       path: "/roadmap",
       icon: Route,
-      disabled: true,
+      disabled: false,
+    },
+    {
+      label:"Roadmap History",
+      path: "/roadmaps",
+      icon: CalendarDays,
+      disabled: false,
     },
     {
       label: "Resume Analyzer",

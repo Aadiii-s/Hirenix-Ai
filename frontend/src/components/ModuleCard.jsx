@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const ModuleCard = ({
   title,
   description,
@@ -5,6 +7,7 @@ const ModuleCard = ({
   status,
   buttonText = "Start Module",
   locked = true,
+  path = "#",
 }) => {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 transition hover:border-slate-700">
@@ -36,9 +39,12 @@ const ModuleCard = ({
           Locked
         </button>
       ) : (
-        <button className="mt-5 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+        <Link
+          to={path}
+          className="mt-5 inline-block rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+        >
           {buttonText}
-        </button>
+        </Link>
       )}
     </div>
   );

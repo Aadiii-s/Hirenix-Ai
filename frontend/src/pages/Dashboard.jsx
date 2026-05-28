@@ -47,7 +47,7 @@ const Dashboard = () => {
       icon: Route,
       status: user?.isProfileCompleted ? "Ready" : "Complete profile first",
       path: "/roadmap",
-      locked: true,
+      locked: !user?.isProfileCompleted,
     },
     {
       title: "Resume Analyzer",
@@ -88,11 +88,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white lg:flex">
-  <Sidebar />
+      <Sidebar />
 
-  <div className="lg:hidden">
-    <MobileHeader />
-  </div>
+      <div className="lg:hidden">
+        <MobileHeader />
+      </div>
 
       <main className="flex-1 px-6 py-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -177,8 +177,9 @@ const Dashboard = () => {
                     description={module.description}
                     icon={module.icon}
                     status={module.status}
-                    buttonText={module.buttonText}
                     locked={module.locked}
+                    buttonText="Start Module"
+                    path={module.path}
                   />
                 ))}
               </div>
