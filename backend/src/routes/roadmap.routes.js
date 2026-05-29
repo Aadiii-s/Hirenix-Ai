@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   deleteRoadmap,
   generateRoadmap,
+  getLatestRoadmap,
   getMyRoadmaps,
   getRoadmapById,
   toggleRoadmapDayCompletion,
@@ -16,6 +17,7 @@ router.use(protect);
 
 router.post("/generate", generateRoadmap);
 router.get("/my-roadmaps", getMyRoadmaps);
+router.get("/latest", getLatestRoadmap);
 router.patch("/:id/toggle-day", toggleRoadmapDayCompletion);
 router.get("/:id", getRoadmapById);
 router.delete("/:id", deleteRoadmap);

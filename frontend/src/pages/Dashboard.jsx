@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   BarChart3,
@@ -9,17 +10,20 @@ import {
   Target,
   Trophy,
   User,
-  Code2,
-  MessageSquare,
 } from "lucide-react";
 
 import DashboardCard from "../components/DashboardCard";
+import MobileHeader from "../components/MobileHeader";
 import ModuleCard from "../components/ModuleCard";
 import Sidebar from "../components/Sidebar";
+import { getLatestRoadmapApi } from "../api/roadmap.api";
 import { useAuth } from "../context/AuthContext";
-import MobileHeader from "../components/MobileHeader";
+
 const Dashboard = () => {
   const { user } = useAuth();
+
+  const [latestRoadmap, setLatestRoadmap] = useState(null);
+  const [roadmapLoading, setRoadmapLoading] = useState(true);
 
   const calculateProfileStrength = () => {
     let score = 0;
@@ -38,6 +42,25 @@ const Dashboard = () => {
   };
 
   const profileStrength = calculateProfileStrength();
+
+  const fetchLatestRoadmap = async () => {
+    try {
+      setRoadmapLoading(true);
+
+      const response = await getLatestRoadmapApi();
+
+      setLatestRoadmap(response.data);
+    } catch (error) {
+      console.log("Latest roadmap error:", error.response?.data || error);
+      setLatestRoadmap(null);
+    } finally {
+      setRoadmapLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLatestRoadmap();
+  }, []);
 
   const modules = [
     {
@@ -119,11 +142,17 @@ const Dashboard = () => {
 
           <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <DashboardCard
-              title="Placement Readiness"
-              value="0%"
-              subtitle="Will unlock after AI modules"
+              title="Roadmap Progress"
+              value={`${latestRoadmap?.progressPercentage || 0}%`}
+              subtitle={
+                latestRoadmap
+                  ? `${latestRoadmap.completedDays?.length || 0} of ${
+                      latestRoadmap.durationInDays
+                    } days completed`
+                  : "Generate your first roadmap"
+              }
               icon={Trophy}
-              status={0}
+              status={latestRoadmap?.progressPercentage || 0}
             />
 
             <DashboardCard
@@ -183,10 +212,99 @@ const Dashboard = () => {
                   />
                 ))}
               </div>
-
             </div>
 
             <div className="space-y-5">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
+                    <Route size={22} />
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl font-semibold">Latest Roadmap</h2>
+                    <p className="text-sm text-slate-400">
+                      Continue your plan
+                    </p>
+                  </div>
+                </div>
+
+                {roadmapLoading ? (
+                  <p className="text-sm text-slate-400">
+                    Loading latest roadmap...
+                  </p>
+                ) : latestRoadmap ? (
+                  <>
+                    <h3 className="text-lg font-semibold">
+                      {latestRoadmap.title}
+                    </h3>
+
+                    <div className="mt-4 space-y-3 text-sm text-slate-400">
+                      <p>
+                        Role:{" "}
+                        <span className="text-slate-200">
+                          {latestRoadmap.targetRole}
+                        </span>
+                      </p>
+
+                      <p>
+                        Company:{" "}
+                        <span className="text-slate-200">
+                          {latestRoadmap.targetCompany || "General"}
+                        </span>
+                      </p>
+
+                      <p>
+                        Progress:{" "}
+                        <span className="text-slate-200">
+                          {latestRoadmap.progressPercentage || 0}%
+                        </span>
+                      </p>
+
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                        <div
+                          className="h-full rounded-full bg-blue-600"
+                          style={{
+                            width: `${
+                              latestRoadmap.progressPercentage || 0
+                            }%`,
+                          }}
+                        />
+                      </div>
+
+                      <p>
+                        Completed:{" "}
+                        <span className="text-slate-200">
+                          {latestRoadmap.completedDays?.length || 0}/
+                          {latestRoadmap.durationInDays} days
+                        </span>
+                      </p>
+                    </div>
+
+                    <Link
+                      to={`/roadmaps/${latestRoadmap._id}`}
+                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                    >
+                      Continue Roadmap
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-slate-300">
+                      You have not generated any roadmap yet. Start with an
+                      AI-powered placement plan.
+                    </p>
+
+                    <Link
+                      to="/roadmap"
+                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                    >
+                      Generate Roadmap
+                    </Link>
+                  </>
+                )}
+              </div>
+
               <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
                 <div className="mb-5 flex items-center gap-3">
                   <div className="rounded-xl bg-green-500/10 p-3 text-green-300">
@@ -203,18 +321,7 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                {user?.isProfileCompleted ? (
-                  <>
-                    <p className="text-slate-300">
-                      Your profile is complete. Next step is to generate your AI
-                      placement roadmap.
-                    </p>
-
-                    <button className="mt-5 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700">
-                      Generate Roadmap
-                    </button>
-                  </>
-                ) : (
+                {!user?.isProfileCompleted ? (
                   <>
                     <p className="text-slate-300">
                       Complete your placement profile so Hirenix AI can
@@ -226,6 +333,34 @@ const Dashboard = () => {
                       className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
                     >
                       Complete Profile
+                    </Link>
+                  </>
+                ) : latestRoadmap ? (
+                  <>
+                    <p className="text-slate-300">
+                      Continue your latest roadmap and complete today's planned
+                      tasks.
+                    </p>
+
+                    <Link
+                      to={`/roadmaps/${latestRoadmap._id}`}
+                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                    >
+                      Continue Roadmap
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-slate-300">
+                      Your profile is complete. Generate your first AI placement
+                      roadmap to start structured preparation.
+                    </p>
+
+                    <Link
+                      to="/roadmap"
+                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                    >
+                      Generate Roadmap
                     </Link>
                   </>
                 )}
@@ -283,7 +418,9 @@ const Dashboard = () => {
                   </div>
 
                   <div>
-                    <h2 className="text-xl font-semibold">Readiness Formula</h2>
+                    <h2 className="text-xl font-semibold">
+                      Readiness Formula
+                    </h2>
                     <p className="text-sm text-slate-400">
                       Future scoring system
                     </p>

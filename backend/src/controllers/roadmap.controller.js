@@ -185,3 +185,18 @@ export const toggleRoadmapDayCompletion = asyncHandler(async (req, res) => {
       )
     );
 });
+export const getLatestRoadmap = asyncHandler(async (req, res) => {
+  const roadmap = await Roadmap.findOne({
+    user: req.user._id,
+  }).sort({ createdAt: -1 });
+
+  if (!roadmap) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "No roadmap found"));
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, roadmap, "Latest roadmap fetched successfully"));
+});

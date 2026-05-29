@@ -26,3 +26,7 @@ export const toggleRoadmapDayApi = async (roadmapId, day) => {
 
   return response.data;
 };
+export const getLatestRoadmapApi = async () =>{
+  const response = await api.get("/roadmaps/latest");
+  return response.data;
+}
