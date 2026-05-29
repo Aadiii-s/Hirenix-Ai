@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth.routes.js";
 import healthRoutes from "./routes/health.routes.js";
 import roadmapRoutes from "./routes/roadmap.routes.js";
 import resumeRoutes from "./routes/resume.routes.js";
+import dsaRoutes from "./routes/dsa.routes.js"
+import readinessRoutes from "./routes/readiness.routes.js"
 
 import errorMiddleware from "./middlewares/error.middleware.js";
 import notFoundMiddleware from "./middlewares/notFound.middleware.js";
@@ -34,6 +36,8 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
 app.use("/api/resumes", resumeRoutes);
+app.use("/api/dsa", dsaRoutes);
+app.use("/api/readiness", readinessRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

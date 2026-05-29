@@ -12,22 +12,30 @@ import {
   User,
 } from "lucide-react";
 
+import { getDsaStatsApi } from "../api/dsa.api";
+import { getLatestResumeAnalysisApi } from "../api/resume.api";
+import { getLatestRoadmapApi } from "../api/roadmap.api";
+import { getReadinessScoreApi } from "../api/readiness.api";
 import DashboardCard from "../components/DashboardCard";
 import MobileHeader from "../components/MobileHeader";
 import ModuleCard from "../components/ModuleCard";
 import Sidebar from "../components/Sidebar";
-import { getLatestRoadmapApi } from "../api/roadmap.api";
 import { useAuth } from "../context/AuthContext";
-import { getLatestResumeAnalysisApi } from "../api/resume.api";
-
 
 const Dashboard = () => {
   const { user } = useAuth();
 
   const [latestRoadmap, setLatestRoadmap] = useState(null);
   const [roadmapLoading, setRoadmapLoading] = useState(true);
+
   const [latestResumeAnalysis, setLatestResumeAnalysis] = useState(null);
   const [resumeLoading, setResumeLoading] = useState(true);
+
+  const [dsaStats, setDsaStats] = useState(null);
+  const [dsaLoading, setDsaLoading] = useState(true);
+
+  const [readiness, setReadiness] = useState(null);
+  const [readinessLoading, setReadinessLoading] = useState(true);
 
   const calculateProfileStrength = () => {
     let score = 0;
@@ -61,6 +69,7 @@ const Dashboard = () => {
       setRoadmapLoading(false);
     }
   };
+
   const fetchLatestResumeAnalysis = async () => {
     try {
       setResumeLoading(true);
@@ -78,28 +87,44 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchLatestRoadmap();
-    fetchLatestResumeAnalysis()
-  }, []);
+  const fetchDsaStats = async () => {
+    try {
+      setDsaLoading(true);
 
+      const response = await getDsaStatsApi();
 
-  const getTodayTaskText = () => {
-    if (!user?.isProfileCompleted) {
-      return "Complete your profile to unlock personalized preparation.";
+      setDsaStats(response.data);
+    } catch (error) {
+      console.log("DSA stats error:", error.response?.data || error);
+      setDsaStats(null);
+    } finally {
+      setDsaLoading(false);
     }
-
-    if (!latestRoadmap) {
-      return "Generate your first AI roadmap.";
-    }
-
-    const nextDay =
-      (latestRoadmap.completedDays?.length || 0) + 1;
-
-    return `Continue Day ${nextDay} of your roadmap.`;
   };
 
+  const fetchReadinessScore = async () => {
+    try {
+      setReadinessLoading(true);
 
+      const response = await getReadinessScoreApi();
+
+      console.log("Readiness response:", response);
+
+      setReadiness(response.data);
+    } catch (error) {
+      console.log("Readiness score error:", error.response?.data || error);
+      setReadiness(null);
+    } finally {
+      setReadinessLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLatestRoadmap();
+    fetchLatestResumeAnalysis();
+    fetchDsaStats();
+    fetchReadinessScore();
+  }, []);
 
   const modules = [
     {
@@ -116,7 +141,7 @@ const Dashboard = () => {
       description:
         "Upload your resume and get ATS score, missing keywords, and improved bullets.",
       icon: FileText,
-      status: user?.isProfileCompleted ? "Ready" : "Complete profile first",
+      status: "Ready",
       path: "/resume-analyzer",
       locked: false,
     },
@@ -125,9 +150,9 @@ const Dashboard = () => {
       description:
         "Track topic-wise DSA progress and identify weak areas for placement preparation.",
       icon: BookOpen,
-      status: "Coming soon",
+      status: "Ready",
       path: "/dsa-tracker",
-      locked: true,
+      locked: false,
     },
     {
       title: "Mock Interview",
@@ -160,13 +185,13 @@ const Dashboard = () => {
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-blue-400 font-medium mb-2">
+              <p className="mb-2 font-medium text-blue-400">
                 Welcome back, {user?.fullName}
               </p>
 
               <h1 className="text-4xl font-bold">Placement Dashboard</h1>
 
-              <p className="text-slate-400 mt-2">
+              <p className="mt-2 text-slate-400">
                 Your complete command center for placement preparation.
               </p>
             </div>
@@ -181,16 +206,20 @@ const Dashboard = () => {
 
           <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <DashboardCard
-              title="Roadmap Progress"
-              value={`${latestRoadmap?.progressPercentage || 0}%`}
-              subtitle={
-                latestRoadmap
-                  ? `${latestRoadmap.completedDays?.length || 0} of ${latestRoadmap.durationInDays
-                  } days completed`
-                  : "Generate your first roadmap"
+              title="Placement Readiness"
+              value={
+                readinessLoading
+                  ? "--"
+                  : readiness
+                  ? `${readiness.finalScore}%`
+                  : "0%"
               }
+              
+              subtitle={readiness?.readinessLevel || "Calculate your readiness"}
               icon={Trophy}
-              status={latestRoadmap?.progressPercentage || 0}
+              status={readiness?.finalScore || 0}
+
+              
             />
 
             <DashboardCard
@@ -210,9 +239,9 @@ const Dashboard = () => {
               value={
                 resumeLoading
                   ? "--"
-                  : latestResumeAnalysis
-                    ? `${latestResumeAnalysis.atsScore}/100`
-                    : "--"
+                  : latestResumeAnalysis?.atsScore !== undefined
+                  ? `${latestResumeAnalysis.atsScore}/100`
+                  : "--"
               }
               subtitle={
                 latestResumeAnalysis
@@ -224,11 +253,17 @@ const Dashboard = () => {
             />
 
             <DashboardCard
-              title="Mock Interviews"
-              value="0"
-              subtitle="Interviews completed"
-              icon={Brain}
-              status={0}
+              title="DSA Progress"
+              value={
+                dsaLoading
+                  ? "--"
+                  : `${dsaStats?.solvedQuestions || 0}/${
+                      dsaStats?.totalQuestions || 0
+                    }`
+              }
+              subtitle={`${dsaStats?.completionPercentage || 0}% completion`}
+              icon={BookOpen}
+              status={dsaStats?.completionPercentage || 0}
             />
           </section>
 
@@ -236,12 +271,10 @@ const Dashboard = () => {
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
               <div className="mb-6 flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold">
-                    Preparation Modules
-                  </h2>
+                  <h2 className="text-xl font-semibold">Preparation Modules</h2>
                   <p className="mt-1 text-sm text-slate-400">
-                    Start with profile setup, then unlock AI roadmap and other
-                    preparation tools.
+                    Start with profile setup, then use AI roadmap, resume
+                    analyzer, and DSA tracker.
                   </p>
                 </div>
               </div>
@@ -259,6 +292,127 @@ const Dashboard = () => {
                     path={module.path}
                   />
                 ))}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="rounded-xl bg-orange-500/10 p-3 text-orange-300">
+                    <Trophy size={22} />
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      Readiness Breakdown
+                    </h2>
+                    <Link
+  to="/readiness"
+  className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+>
+  View Full Readiness Report
+</Link>
+                    <p className="text-sm text-slate-400">
+                      Weighted placement score
+                    </p>
+                  </div>
+                </div>
+
+                {readinessLoading ? (
+                  <p className="text-sm text-slate-400">
+                    Calculating readiness...
+                  </p>
+                ) : readiness ? (
+                  <div className="space-y-4">
+                    <BreakdownRow
+                      label="Profile"
+                      score={readiness.breakdown.profile.score}
+                      weight={readiness.breakdown.profile.weight}
+                      contribution={readiness.breakdown.profile.contribution}
+                    />
+
+                    <BreakdownRow
+                      label="Roadmap"
+                      score={readiness.breakdown.roadmap.score}
+                      weight={readiness.breakdown.roadmap.weight}
+                      contribution={readiness.breakdown.roadmap.contribution}
+                    />
+
+                    <BreakdownRow
+                      label="Resume"
+                      score={readiness.breakdown.resume.score}
+                      weight={readiness.breakdown.resume.weight}
+                      contribution={readiness.breakdown.resume.contribution}
+                    />
+
+                    <BreakdownRow
+                      label="DSA"
+                      score={readiness.breakdown.dsa.score}
+                      weight={readiness.breakdown.dsa.weight}
+                      contribution={readiness.breakdown.dsa.contribution}
+                    />
+
+                    <BreakdownRow
+                      label="Consistency"
+                      score={readiness.breakdown.consistency.score}
+                      weight={readiness.breakdown.consistency.weight}
+                      contribution={
+                        readiness.breakdown.consistency.contribution
+                      }
+                    />
+
+                    <div className="border-t border-slate-800 pt-4">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-200">
+                          Final Score
+                        </span>
+                        <span className="text-2xl font-bold text-blue-300">
+                          {readiness.finalScore}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-slate-400">
+                    No readiness data available.
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-6">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="rounded-xl bg-green-500/10 p-3 text-green-300">
+                    <CheckCircle2 size={22} />
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl font-semibold">
+                      AI Recommendations
+                    </h2>
+                    <p className="text-sm text-slate-400">
+                      Based on your current progress
+                    </p>
+                  </div>
+                </div>
+
+                {readinessLoading ? (
+                  <p className="text-sm text-slate-400">
+                    Loading recommendations...
+                  </p>
+                ) : readiness?.recommendations?.length > 0 ? (
+                  <ul className="space-y-3">
+                    {readiness.recommendations.map((item, index) => (
+                      <li
+                        key={index}
+                        className="rounded-xl bg-slate-900 px-4 py-3 text-sm leading-6 text-slate-300"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-400">
+                    No recommendations available yet.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -313,8 +467,9 @@ const Dashboard = () => {
                         <div
                           className="h-full rounded-full bg-blue-600"
                           style={{
-                            width: `${latestRoadmap.progressPercentage || 0
-                              }%`,
+                            width: `${
+                              latestRoadmap.progressPercentage || 0
+                            }%`,
                           }}
                         />
                       </div>
@@ -363,16 +518,28 @@ const Dashboard = () => {
                       Today's Priority
                     </h2>
                     <p className="text-sm text-slate-400">
-                      {getTodayTaskText()}
+                      Recommended next action
                     </p>
                   </div>
                 </div>
 
-                {!user?.isProfileCompleted ? (
+                {readinessLoading ? (
+                  <p className="text-slate-300">
+                    Finding your next best action...
+                  </p>
+                ) : readiness ? (
                   <>
                     <p className="text-slate-300">
-                      Complete your placement profile so Hirenix AI can
-                      personalize your preparation journey.
+                      {readiness.nextBestAction}
+                    </p>
+
+                    <NextActionButton action={readiness.nextBestAction} />
+                  </>
+                ) : (
+                  <>
+                    <p className="text-slate-300">
+                      Start by completing your profile and generating your
+                      roadmap.
                     </p>
 
                     <Link
@@ -380,34 +547,6 @@ const Dashboard = () => {
                       className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
                     >
                       Complete Profile
-                    </Link>
-                  </>
-                ) : latestRoadmap ? (
-                  <>
-                    <p className="text-slate-300">
-                      Continue your latest roadmap and complete today's planned
-                      tasks.
-                    </p>
-
-                    <Link
-                      to={`/roadmaps/${latestRoadmap._id}`}
-                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
-                    >
-                      Continue Roadmap
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-slate-300">
-                      Your profile is complete. Generate your first AI placement
-                      roadmap to start structured preparation.
-                    </p>
-
-                    <Link
-                      to="/roadmap"
-                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
-                    >
-                      Generate Roadmap
                     </Link>
                   </>
                 )}
@@ -465,42 +604,111 @@ const Dashboard = () => {
                   </div>
 
                   <div>
-                    <h2 className="text-xl font-semibold">
-                      Readiness Formula
-                    </h2>
+                    <h2 className="text-xl font-semibold">Scoring Formula</h2>
                     <p className="text-sm text-slate-400">
-                      Future scoring system
+                      How readiness is calculated
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-3 text-sm text-slate-300">
-                  <div className="flex justify-between">
-                    <span>DSA Progress</span>
-                    <span>30%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Resume Score</span>
-                    <span>20%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Mock Interview</span>
-                    <span>25%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Aptitude</span>
-                    <span>15%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Consistency</span>
-                    <span>10%</span>
-                  </div>
+                  <FormulaRow label="Profile Strength" value="20%" />
+                  <FormulaRow label="Roadmap Progress" value="20%" />
+                  <FormulaRow label="Resume Score" value="25%" />
+                  <FormulaRow label="DSA Progress" value="25%" />
+                  <FormulaRow label="Consistency" value="10%" />
                 </div>
               </div>
             </div>
           </section>
         </div>
       </main>
+    </div>
+  );
+};
+
+const BreakdownRow = ({ label, score, weight, contribution }) => {
+  return (
+    <div>
+      <div className="mb-2 flex items-center justify-between text-sm">
+        <span className="text-slate-300">{label}</span>
+        <span className="text-slate-400">
+          {score}% × {weight}% = {contribution}
+        </span>
+      </div>
+
+      <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+        <div
+          className="h-full rounded-full bg-blue-600"
+          style={{ width: `${score || 0}%` }}
+        />
+      </div>
+    </div>
+  );
+};
+
+const NextActionButton = ({ action }) => {
+  const normalizedAction = action?.toLowerCase() || "";
+
+  if (normalizedAction.includes("profile")) {
+    return (
+      <Link
+        to="/edit-profile"
+        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+      >
+        Complete Profile
+      </Link>
+    );
+  }
+
+  if (normalizedAction.includes("resume")) {
+    return (
+      <Link
+        to="/resume-analyzer"
+        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+      >
+        Analyze Resume
+      </Link>
+    );
+  }
+
+  if (normalizedAction.includes("roadmap")) {
+    return (
+      <Link
+        to="/roadmap"
+        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+      >
+        Open Roadmap
+      </Link>
+    );
+  }
+
+  if (normalizedAction.includes("dsa")) {
+    return (
+      <Link
+        to="/dsa-tracker"
+        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+      >
+        Solve DSA
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      to="/dashboard"
+      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+    >
+      Continue
+    </Link>
+  );
+};
+
+const FormulaRow = ({ label, value }) => {
+  return (
+    <div className="flex justify-between">
+      <span>{label}</span>
+      <span>{value}</span>
     </div>
   );
 };

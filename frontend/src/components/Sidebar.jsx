@@ -56,7 +56,7 @@ const Sidebar = () => {
       label: "DSA Tracker",
       path: "/dsa-tracker",
       icon: BookOpen,
-      disabled: true,
+      disabled: false,
     },
     {
       label: "Mock Interview",

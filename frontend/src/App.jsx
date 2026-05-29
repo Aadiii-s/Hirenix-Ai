@@ -14,6 +14,8 @@ import RoadmapHistory from "./pages/RoadmapHistory";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 import ResumeAnalysisHistory from "./pages/ResumeAnalysisHistory";
 import ResumeAnalysisDetails from "./pages/ResumeAnalysisDetails";
+import DsaTracker from "./pages/DsaTracker";
+import ReadinessReport from "./pages/ReadinessReport";
 
 function App() {
   return (
@@ -103,6 +105,22 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/dsa-tracker"
+        element ={
+          <ProtectedRoute>
+            <DsaTracker />
+          </ProtectedRoute>
+        }
+        />
+        <Route
+          path="/readiness"
+          element ={
+            <ProtectedRoute>
+              <ReadinessReport />
+            </ProtectedRoute>
+          }
+          />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
