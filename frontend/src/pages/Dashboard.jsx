@@ -62,6 +62,21 @@ const Dashboard = () => {
     fetchLatestRoadmap();
   }, []);
 
+  const getTodayTaskText = () => {
+  if (!user?.isProfileCompleted) {
+    return "Complete your profile to unlock personalized preparation.";
+  }
+
+  if (!latestRoadmap) {
+    return "Generate your first AI roadmap.";
+  }
+
+  const nextDay =
+    (latestRoadmap.completedDays?.length || 0) + 1;
+
+  return `Continue Day ${nextDay} of your roadmap.`;
+};
+
   const modules = [
     {
       title: "AI Roadmap Generator",
@@ -316,7 +331,7 @@ const Dashboard = () => {
                       Today's Priority
                     </h2>
                     <p className="text-sm text-slate-400">
-                      Recommended next action
+                      {getTodayTaskText()}
                     </p>
                   </div>
                 </div>

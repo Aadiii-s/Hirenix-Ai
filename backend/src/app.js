@@ -2,11 +2,13 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import authRoutes from "./routes/auth.routes.js"
+import authRoutes from "./routes/auth.routes.js";
 import healthRoutes from "./routes/health.routes.js";
-import notFoundHandler from "./middlewares/notFound.middleware.js";
-import errorMiddleware from "./middlewares/error.middleware.js";
 import roadmapRoutes from "./routes/roadmap.routes.js";
+import resumeRoutes from "./routes/resume.routes.js";
+
+import errorMiddleware from "./middlewares/error.middleware.js";
+import notFoundMiddleware from "./middlewares/notFound.middleware.js";
 
 const app = express();
 
@@ -27,12 +29,13 @@ app.get("/", (req, res) => {
     message: "Hirenix AI API is running",
   });
 });
-app.use("/api/health",healthRoutes);
+
+app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
+app.use("/api/resumes", resumeRoutes);
 
-app.use(notFoundHandler);
+app.use(notFoundMiddleware);
 app.use(errorMiddleware);
-
 
 export default app;
