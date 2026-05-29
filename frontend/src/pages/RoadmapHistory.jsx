@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, Eye, Plus, Trash2 } from "lucide-react";
+import { Calendar, Eye, Plus, Search, Trash2 } from "lucide-react";
 
 import MobileHeader from "../components/MobileHeader";
 import Sidebar from "../components/Sidebar";
@@ -8,6 +8,7 @@ import { deleteRoadmapApi, getMyRoadmapsApi } from "../api/roadmap.api";
 
 const RoadmapHistory = () => {
   const [roadmaps, setRoadmaps] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
@@ -15,18 +16,25 @@ const RoadmapHistory = () => {
   const fetchRoadmaps = async () => {
     try {
       setLoading(true);
+
       const response = await getMyRoadmapsApi();
+
       setRoadmaps(response.data);
     } catch (error) {
-      setError(
-        error.response?.data?.message || "Failed to fetch roadmaps"
-      );
+      setError(error.response?.data?.message || "Failed to fetch roadmaps");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (roadmapId) => {
+    console.log("Deleting roadmap id:", roadmapId);
+
+    if (!roadmapId) {
+      alert("Roadmap id is missing");
+      return;
+    }
+
     const isConfirmed = window.confirm(
       "Are you sure you want to delete this roadmap?"
     );
@@ -35,12 +43,14 @@ const RoadmapHistory = () => {
 
     try {
       setDeletingId(roadmapId);
+
       await deleteRoadmapApi(roadmapId);
 
       setRoadmaps((prevRoadmaps) =>
         prevRoadmaps.filter((roadmap) => roadmap._id !== roadmapId)
       );
     } catch (error) {
+      console.log("Delete roadmap error:", error.response?.data || error);
       alert(error.response?.data?.message || "Failed to delete roadmap");
     } finally {
       setDeletingId("");
@@ -50,6 +60,12 @@ const RoadmapHistory = () => {
   useEffect(() => {
     fetchRoadmaps();
   }, []);
+
+  const filteredRoadmaps = roadmaps.filter((roadmap) =>
+    `${roadmap.title} ${roadmap.targetRole} ${roadmap.targetCompany}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-slate-950 text-white lg:flex">
@@ -66,7 +82,8 @@ const RoadmapHistory = () => {
               <p className="text-blue-400 font-medium">Roadmap History</p>
               <h1 className="mt-2 text-4xl font-bold">Your AI Roadmaps</h1>
               <p className="mt-2 text-slate-400">
-                View, open, and manage your generated placement roadmaps.
+                View, search, open, and manage your generated placement
+                roadmaps.
               </p>
             </div>
 
@@ -77,6 +94,34 @@ const RoadmapHistory = () => {
               <Plus size={18} />
               Generate New
             </Link>
+          </div>
+
+          <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
+            <label className="mb-2 block text-sm text-slate-300">
+              Search roadmap by target role or company
+            </label>
+
+            <div className="relative">
+              <Search
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+              />
+
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search Google, SDE, MERN, Amazon..."
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-4 text-white outline-none focus:border-blue-500"
+              />
+            </div>
+
+            {searchTerm && (
+              <p className="mt-3 text-sm text-slate-400">
+                Showing {filteredRoadmaps.length} result
+                {filteredRoadmaps.length !== 1 ? "s" : ""} for "{searchTerm}"
+              </p>
+            )}
           </div>
 
           {error && (
@@ -104,9 +149,23 @@ const RoadmapHistory = () => {
                 Generate Roadmap
               </Link>
             </div>
+          ) : filteredRoadmaps.length === 0 ? (
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center">
+              <h2 className="text-2xl font-bold">No matching roadmaps</h2>
+              <p className="mt-2 text-slate-400">
+                Try searching with another role, company, or title.
+              </p>
+
+              <button
+                onClick={() => setSearchTerm("")}
+                className="mt-6 rounded-xl border border-slate-700 px-5 py-3 font-semibold text-slate-300 hover:bg-slate-800"
+              >
+                Clear Search
+              </button>
+            </div>
           ) : (
             <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {roadmaps.map((roadmap) => (
+              {filteredRoadmaps.map((roadmap) => (
                 <div
                   key={roadmap._id}
                   className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
@@ -142,6 +201,22 @@ const RoadmapHistory = () => {
                       </span>
                     </p>
 
+                    <p>
+                      Progress:{" "}
+                      <span className="text-slate-200">
+                        {roadmap.progressPercentage || 0}%
+                      </span>
+                    </p>
+
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-800">
+                      <div
+                        className="h-full rounded-full bg-blue-600"
+                        style={{
+                          width: `${roadmap.progressPercentage || 0}%`,
+                        }}
+                      />
+                    </div>
+
                     <p className="capitalize">
                       Level:{" "}
                       <span className="text-slate-200">
@@ -167,7 +242,7 @@ const RoadmapHistory = () => {
                     <button
                       onClick={() => handleDelete(roadmap._id)}
                       disabled={deletingId === roadmap._id}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/10 disabled:opacity-60 cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/10 disabled:opacity-60"
                     >
                       <Trash2 size={16} />
                       {deletingId === roadmap._id ? "..." : "Delete"}

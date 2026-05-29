@@ -11,7 +11,7 @@ import {
 
 import MobileHeader from "../components/MobileHeader";
 import Sidebar from "../components/Sidebar";
-import { getRoadmapByIdApi } from "../api/roadmap.api";
+import { getRoadmapByIdApi, toggleRoadmapDayApi } from "../api/roadmap.api";
 
 const RoadmapDetails = () => {
   const { id } = useParams();
@@ -20,6 +20,7 @@ const RoadmapDetails = () => {
   const [activeTab, setActiveTab] = useState("daily");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingDay, setUpdatingDay] = useState(null);
 
   const fetchRoadmap = async () => {
     try {
@@ -86,6 +87,20 @@ const RoadmapDetails = () => {
     return null;
   }
 
+  const handleToggleDay = async (day) => {
+    try {
+      setUpdatingDay(day);
+
+      const response = await toggleRoadmapDayApi(id, day);
+
+      setRoadmap(response.data);
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to update roadmap day");
+    } finally {
+      setUpdatingDay(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-white lg:flex">
       <Sidebar />
@@ -142,7 +157,7 @@ const RoadmapDetails = () => {
             </div>
           </div>
 
-          <section className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <section className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
               <div className="mb-4 flex items-center gap-3">
                 <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
@@ -190,36 +205,53 @@ const RoadmapDetails = () => {
             <div className="mb-6 flex flex-wrap gap-3">
               <button
                 onClick={() => setActiveTab("daily")}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                  activeTab === "daily"
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-950 text-slate-400"
-                }`}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold ${activeTab === "daily"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-950 text-slate-400"
+                  }`}
               >
                 Daily Plan
               </button>
 
               <button
                 onClick={() => setActiveTab("weekly")}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                  activeTab === "weekly"
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-950 text-slate-400"
-                }`}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold ${activeTab === "weekly"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-950 text-slate-400"
+                  }`}
               >
                 Weekly Milestones
               </button>
 
               <button
                 onClick={() => setActiveTab("resources")}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                  activeTab === "resources"
-                    ? "bg-blue-600 text-white"
-                    : "bg-slate-950 text-slate-400"
-                }`}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold ${activeTab === "resources"
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-950 text-slate-400"
+                  }`}
               >
                 Resources & Suggestions
               </button>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="rounded-xl bg-orange-500/10 p-3 text-orange-300">
+                  <Target size={22} />
+                </div>
+                <h2 className="text-xl font-semibold">Progress</h2>
+              </div>
+
+              <p className="text-3xl font-bold">{roadmap.progressPercentage || 0}%</p>
+              <p className="mt-1 text-sm text-slate-400">
+                {roadmap.completedDays?.length || 0} days completed
+              </p>
+
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-800">
+                <div
+                  className="h-full rounded-full bg-blue-600"
+                  style={{ width: `${roadmap.progressPercentage || 0}%` }}
+                />
+              </div>
             </div>
 
             {activeTab === "daily" && (
@@ -229,15 +261,32 @@ const RoadmapDetails = () => {
                     key={day.day}
                     className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
                   >
-                    <div className="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                    <div className="mb-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div>
                         <p className="text-sm text-blue-400">Day {day.day}</p>
                         <h3 className="text-xl font-semibold">{day.title}</h3>
                       </div>
 
-                      <div className="flex items-center gap-2 text-sm text-slate-400">
-                        <Clock size={16} />
-                        {day.estimatedHours || 3} hours
+                      <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                          <Clock size={16} />
+                          {day.estimatedHours || 3} hours
+                        </div>
+
+                        <button
+                          onClick={() => handleToggleDay(day.day)}
+                          disabled={updatingDay === day.day}
+                          className={`rounded-xl px-4 py-2 text-sm font-semibold ${roadmap.completedDays?.includes(day.day)
+                              ? "bg-green-500/10 text-green-300 hover:bg-green-500/20"
+                              : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                            }`}
+                        >
+                          {updatingDay === day.day
+                            ? "Updating..."
+                            : roadmap.completedDays?.includes(day.day)
+                              ? "Completed"
+                              : "Mark Complete"}
+                        </button>
                       </div>
                     </div>
 

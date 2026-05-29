@@ -5,6 +5,7 @@ import {
   generateRoadmap,
   getMyRoadmaps,
   getRoadmapById,
+  toggleRoadmapDayCompletion,
 } from "../controllers/roadmap.controller.js";
 
 import { protect } from "../middlewares/auth.middleware.js";
@@ -15,6 +16,7 @@ router.use(protect);
 
 router.post("/generate", generateRoadmap);
 router.get("/my-roadmaps", getMyRoadmaps);
+router.patch("/:id/toggle-day", toggleRoadmapDayCompletion);
 router.get("/:id", getRoadmapById);
 router.delete("/:id", deleteRoadmap);
 

@@ -124,3 +124,64 @@ export const deleteRoadmap = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, null, "Roadmap deleted successfully"));
 });
+
+export const toggleRoadmapDayCompletion = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { day } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid roadmap id");
+  }
+
+  if (!day) {
+    throw new ApiError(400, "Day is required");
+  }
+
+  const roadmap = await Roadmap.findOne({
+    _id: id,
+    user: req.user._id,
+  });
+
+  if (!roadmap) {
+    throw new ApiError(404, "Roadmap not found");
+  }
+
+  const dayNumber = Number(day);
+
+  if (dayNumber < 1 || dayNumber > roadmap.durationInDays) {
+    throw new ApiError(
+      400,
+      `Day must be between 1 and ${roadmap.durationInDays}`
+    );
+  }
+
+  const isAlreadyCompleted = roadmap.completedDays.includes(dayNumber);
+
+  if (isAlreadyCompleted) {
+    roadmap.completedDays = roadmap.completedDays.filter(
+      (completedDay) => completedDay !== dayNumber
+    );
+  } else {
+    roadmap.completedDays.push(dayNumber);
+  }
+
+  roadmap.completedDays.sort((a, b) => a - b);
+
+  roadmap.progressPercentage = Math.round(
+    (roadmap.completedDays.length / roadmap.durationInDays) * 100
+  );
+
+  const updatedRoadmap = await roadmap.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        updatedRoadmap,
+        isAlreadyCompleted
+          ? "Roadmap day marked as incomplete"
+          : "Roadmap day marked as completed"
+      )
+    );
+});

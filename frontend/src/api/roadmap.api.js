@@ -19,3 +19,10 @@ export const deleteRoadmapApi = async (roadmapId) => {
   const response = await api.delete(`/roadmaps/${roadmapId}`);
   return response.data;
 };
+export const toggleRoadmapDayApi = async (roadmapId, day) => {
+  const response = await api.patch(`/roadmaps/${roadmapId}/toggle-day`, {
+    day,
+  });
+
+  return response.data;
+};
