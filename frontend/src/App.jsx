@@ -11,6 +11,9 @@ import Register from "./pages/Register";
 import Roadmap from "./pages/Roadmap";
 import RoadmapDetails from "./pages/RoadmapDetails";
 import RoadmapHistory from "./pages/RoadmapHistory";
+import ResumeAnalyzer from "./pages/ResumeAnalyzer";
+import ResumeAnalysisHistory from "./pages/ResumeAnalysisHistory";
+import ResumeAnalysisDetails from "./pages/ResumeAnalysisDetails";
 
 function App() {
   return (
@@ -74,7 +77,32 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route 
+        path="/resume-analyzer"
+        element ={
+          <ProtectedRoute>
+            <ResumeAnalyzer/>
+          </ProtectedRoute>
+        }
+        />
 
+      <Route
+         path="/resume-analyses"
+         element ={
+          <ProtectedRoute>
+            <ResumeAnalysisHistory/>
+          </ProtectedRoute>
+         }
+        />
+      
+      <Route
+        path="/resume-analyses/:id"
+        element ={
+          <ProtectedRoute>
+            <ResumeAnalysisDetails/>
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

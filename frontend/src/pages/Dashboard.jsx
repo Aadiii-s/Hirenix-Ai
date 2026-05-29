@@ -18,12 +18,16 @@ import ModuleCard from "../components/ModuleCard";
 import Sidebar from "../components/Sidebar";
 import { getLatestRoadmapApi } from "../api/roadmap.api";
 import { useAuth } from "../context/AuthContext";
+import { getLatestResumeAnalysisApi } from "../api/resume.api";
+
 
 const Dashboard = () => {
   const { user } = useAuth();
 
   const [latestRoadmap, setLatestRoadmap] = useState(null);
   const [roadmapLoading, setRoadmapLoading] = useState(true);
+  const [latestResumeAnalysis, setLatestResumeAnalysis] = useState(null);
+  const [resumeLoading, setResumeLoading] = useState(true);
 
   const calculateProfileStrength = () => {
     let score = 0;
@@ -57,25 +61,45 @@ const Dashboard = () => {
       setRoadmapLoading(false);
     }
   };
+  const fetchLatestResumeAnalysis = async () => {
+    try {
+      setResumeLoading(true);
+
+      const response = await getLatestResumeAnalysisApi();
+
+      console.log("Latest resume response:", response);
+
+      setLatestResumeAnalysis(response.data);
+    } catch (error) {
+      console.log("Latest resume analysis error:", error.response?.data || error);
+      setLatestResumeAnalysis(null);
+    } finally {
+      setResumeLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchLatestRoadmap();
+    fetchLatestResumeAnalysis()
   }, []);
 
+
   const getTodayTaskText = () => {
-  if (!user?.isProfileCompleted) {
-    return "Complete your profile to unlock personalized preparation.";
-  }
+    if (!user?.isProfileCompleted) {
+      return "Complete your profile to unlock personalized preparation.";
+    }
 
-  if (!latestRoadmap) {
-    return "Generate your first AI roadmap.";
-  }
+    if (!latestRoadmap) {
+      return "Generate your first AI roadmap.";
+    }
 
-  const nextDay =
-    (latestRoadmap.completedDays?.length || 0) + 1;
+    const nextDay =
+      (latestRoadmap.completedDays?.length || 0) + 1;
 
-  return `Continue Day ${nextDay} of your roadmap.`;
-};
+    return `Continue Day ${nextDay} of your roadmap.`;
+  };
+
+
 
   const modules = [
     {
@@ -92,9 +116,9 @@ const Dashboard = () => {
       description:
         "Upload your resume and get ATS score, missing keywords, and improved bullets.",
       icon: FileText,
-      status: "Coming soon",
+      status: user?.isProfileCompleted ? "Ready" : "Complete profile first",
       path: "/resume-analyzer",
-      locked: true,
+      locked: false,
     },
     {
       title: "DSA Tracker",
@@ -161,9 +185,8 @@ const Dashboard = () => {
               value={`${latestRoadmap?.progressPercentage || 0}%`}
               subtitle={
                 latestRoadmap
-                  ? `${latestRoadmap.completedDays?.length || 0} of ${
-                      latestRoadmap.durationInDays
-                    } days completed`
+                  ? `${latestRoadmap.completedDays?.length || 0} of ${latestRoadmap.durationInDays
+                  } days completed`
                   : "Generate your first roadmap"
               }
               icon={Trophy}
@@ -183,11 +206,21 @@ const Dashboard = () => {
             />
 
             <DashboardCard
-              title="DSA Progress"
-              value="0/100"
-              subtitle="Problems solved"
-              icon={BookOpen}
-              status={0}
+              title="Resume Score"
+              value={
+                resumeLoading
+                  ? "--"
+                  : latestResumeAnalysis
+                    ? `${latestResumeAnalysis.atsScore}/100`
+                    : "--"
+              }
+              subtitle={
+                latestResumeAnalysis
+                  ? latestResumeAnalysis.originalFileName
+                  : "Analyze your resume"
+              }
+              icon={FileText}
+              status={latestResumeAnalysis?.atsScore || 0}
             />
 
             <DashboardCard
@@ -280,9 +313,8 @@ const Dashboard = () => {
                         <div
                           className="h-full rounded-full bg-blue-600"
                           style={{
-                            width: `${
-                              latestRoadmap.progressPercentage || 0
-                            }%`,
+                            width: `${latestRoadmap.progressPercentage || 0
+                              }%`,
                           }}
                         />
                       </div>

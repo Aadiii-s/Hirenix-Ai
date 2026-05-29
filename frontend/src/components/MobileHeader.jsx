@@ -71,6 +71,30 @@ const MobileHeader = () => {
     History
   </NavLink>
   <NavLink
+    to="/resume-analyzer"
+    className={({ isActive }) =>
+      `whitespace-nowrap rounded-full px-4 py-2 transition ${
+        isActive
+          ? "bg-blue-600 text-white"
+          : "bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+      }`
+    }
+  >
+    Resume
+  </NavLink>
+  <NavLink
+    to="/resume-analyses"
+    className={({ isActive }) =>
+      `whitespace-nowrap rounded-full px-4 py-2 transition ${
+        isActive
+          ? "bg-blue-600 text-white"
+          : "bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+      }`
+    }
+  >
+    Resume History
+  </NavLink>
+  <NavLink
     to="/dashboard"
     className={({ isActive }) =>
       `whitespace-nowrap rounded-full px-4 py-2 transition ${

@@ -35,7 +35,7 @@ const Sidebar = () => {
       disabled: false,
     },
     {
-      label:"Roadmap History",
+      label: "Roadmap History",
       path: "/roadmaps",
       icon: CalendarDays,
       disabled: false,
@@ -44,7 +44,13 @@ const Sidebar = () => {
       label: "Resume Analyzer",
       path: "/resume-analyzer",
       icon: FileText,
-      disabled: true,
+      disabled: false,
+    },
+    {
+      label: "Resume History",
+      path: "/resume-analyses",
+      icon: FileText,
+      disabled: false,
     },
     {
       label: "DSA Tracker",
@@ -96,11 +102,10 @@ const Sidebar = () => {
           </div>
 
           <div
-            className={`mt-4 rounded-full px-3 py-1 text-xs font-medium ${
-              user?.isProfileCompleted
+            className={`mt-4 rounded-full px-3 py-1 text-xs font-medium ${user?.isProfileCompleted
                 ? "bg-green-500/10 text-green-300"
                 : "bg-yellow-500/10 text-yellow-300"
-            }`}
+              }`}
           >
             {user?.isProfileCompleted ? "Profile Complete" : "Profile Pending"}
           </div>
@@ -133,11 +138,10 @@ const Sidebar = () => {
               <Link
                 key={item.label}
                 to={item.path}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${
-                  isActive
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${isActive
                     ? "bg-blue-600 text-white"
                     : "text-slate-300 hover:bg-slate-900 hover:text-white"
-                }`}
+                  }`}
               >
                 <Icon size={18} />
                 {item.label}

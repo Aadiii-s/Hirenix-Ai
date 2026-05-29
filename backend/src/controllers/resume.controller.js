@@ -118,6 +118,29 @@ export const getResumeAnalysisById = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, analysis, "Resume analysis fetched successfully"));
 });
+export const getLatestResumeAnalysis = asyncHandler(async (req, res) => {
+  const analysis = await ResumeAnalysis.findOne({
+    user: req.user._id,
+  })
+    .select("-resumeText -rawAiResponse")
+    .sort({ createdAt: -1 });
+
+  if (!analysis) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "No resume analysis found"));
+  }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        analysis,
+        "Latest resume analysis fetched successfully"
+      )
+    );
+});
 
 export const deleteResumeAnalysis = asyncHandler(async (req, res) => {
   const { id } = req.params;
