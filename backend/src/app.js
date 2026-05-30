@@ -8,6 +8,7 @@ import roadmapRoutes from "./routes/roadmap.routes.js";
 import resumeRoutes from "./routes/resume.routes.js";
 import dsaRoutes from "./routes/dsa.routes.js"
 import readinessRoutes from "./routes/readiness.routes.js"
+import interviewRoutes from "./routes/interview.routes.js"
 
 import errorMiddleware from "./middlewares/error.middleware.js";
 import notFoundMiddleware from "./middlewares/notFound.middleware.js";
@@ -38,6 +39,7 @@ app.use("/api/roadmaps", roadmapRoutes);
 app.use("/api/resumes", resumeRoutes);
 app.use("/api/dsa", dsaRoutes);
 app.use("/api/readiness", readinessRoutes);
+app.use("/api/interviews",interviewRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
