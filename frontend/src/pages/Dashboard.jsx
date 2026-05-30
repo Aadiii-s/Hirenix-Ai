@@ -21,6 +21,7 @@ import MobileHeader from "../components/MobileHeader";
 import ModuleCard from "../components/ModuleCard";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
+import { getMockInterviewStatsApi } from "../api/interview.api";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -36,6 +37,9 @@ const Dashboard = () => {
 
   const [readiness, setReadiness] = useState(null);
   const [readinessLoading, setReadinessLoading] = useState(true);
+
+  const [interviewStats, setInterviewStats] = useState(null);
+  const [interviewLoading, setInterviewLoading] = useState(true);
 
   const calculateProfileStrength = () => {
     let score = 0;
@@ -119,11 +123,28 @@ const Dashboard = () => {
     }
   };
 
+  const fetchInterviewStats = async () => {
+    try {
+      setInterviewLoading(true);
+
+      const response = await getMockInterviewStatsApi();
+
+      setInterviewStats(response.data);
+    } catch (error) {
+      console.log("Interview stats error:", error.response?.data || error);
+      setInterviewStats(null);
+
+    } finally {
+      setInterviewLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchLatestRoadmap();
     fetchLatestResumeAnalysis();
     fetchDsaStats();
     fetchReadinessScore();
+    fetchInterviewStats();
   }, []);
 
   const modules = [
@@ -161,7 +182,7 @@ const Dashboard = () => {
       icon: Brain,
       status: "Coming soon",
       path: "/mock-interview",
-      locked: true,
+      locked: false,
     },
   ];
 
@@ -172,6 +193,7 @@ const Dashboard = () => {
 
   const skillsText =
     user?.skills?.length > 0 ? user.skills.slice(0, 4).join(", ") : "Not added";
+
 
   return (
     <div className="min-h-screen bg-slate-950 text-white lg:flex">
@@ -211,27 +233,15 @@ const Dashboard = () => {
                 readinessLoading
                   ? "--"
                   : readiness
-                  ? `${readiness.finalScore}%`
-                  : "0%"
+                    ? `${readiness.finalScore}%`
+                    : "0%"
               }
-              
+
               subtitle={readiness?.readinessLevel || "Calculate your readiness"}
               icon={Trophy}
               status={readiness?.finalScore || 0}
 
-              
-            />
 
-            <DashboardCard
-              title="Profile Strength"
-              value={`${profileStrength}%`}
-              subtitle={
-                user?.isProfileCompleted
-                  ? "Profile completed"
-                  : "Complete your onboarding"
-              }
-              icon={User}
-              status={profileStrength}
             />
 
             <DashboardCard
@@ -240,8 +250,8 @@ const Dashboard = () => {
                 resumeLoading
                   ? "--"
                   : latestResumeAnalysis?.atsScore !== undefined
-                  ? `${latestResumeAnalysis.atsScore}/100`
-                  : "--"
+                    ? `${latestResumeAnalysis.atsScore}/100`
+                    : "--"
               }
               subtitle={
                 latestResumeAnalysis
@@ -257,13 +267,24 @@ const Dashboard = () => {
               value={
                 dsaLoading
                   ? "--"
-                  : `${dsaStats?.solvedQuestions || 0}/${
-                      dsaStats?.totalQuestions || 0
-                    }`
+                  : `${dsaStats?.solvedQuestions || 0}/${dsaStats?.totalQuestions || 0
+                  }`
               }
               subtitle={`${dsaStats?.completionPercentage || 0}% completion`}
               icon={BookOpen}
               status={dsaStats?.completionPercentage || 0}
+            />
+            <DashboardCard
+              title="Mock Interviews"
+              value={
+                interviewLoading
+                  ? "--"
+                  : `${interviewStats?.completedInterviews || 0}/${interviewStats?.totalInterviews || 0
+                  }`
+              }
+              subtitle={`Avg score: ${interviewStats?.averageScore || 0}%`}
+              icon={Brain}
+              status={interviewStats?.averageScore || 0}
             />
           </section>
 
@@ -305,11 +326,11 @@ const Dashboard = () => {
                       Readiness Breakdown
                     </h2>
                     <Link
-  to="/readiness"
-  className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
->
-  View Full Readiness Report
-</Link>
+                      to="/readiness"
+                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                    >
+                      View Full Readiness Report
+                    </Link>
                     <p className="text-sm text-slate-400">
                       Weighted placement score
                     </p>
@@ -348,6 +369,12 @@ const Dashboard = () => {
                       score={readiness.breakdown.dsa.score}
                       weight={readiness.breakdown.dsa.weight}
                       contribution={readiness.breakdown.dsa.contribution}
+                    />
+                    <BreakdownRow
+                      label="Mock Interview"
+                      score={readiness.breakdown.interview.score}
+                      weight={readiness.breakdown.interview.weight}
+                      contribution={readiness.breakdown.interview.contribution}
                     />
 
                     <BreakdownRow
@@ -467,9 +494,8 @@ const Dashboard = () => {
                         <div
                           className="h-full rounded-full bg-blue-600"
                           style={{
-                            width: `${
-                              latestRoadmap.progressPercentage || 0
-                            }%`,
+                            width: `${latestRoadmap.progressPercentage || 0
+                              }%`,
                           }}
                         />
                       </div>
@@ -612,10 +638,11 @@ const Dashboard = () => {
                 </div>
 
                 <div className="space-y-3 text-sm text-slate-300">
-                  <FormulaRow label="Profile Strength" value="20%" />
-                  <FormulaRow label="Roadmap Progress" value="20%" />
-                  <FormulaRow label="Resume Score" value="25%" />
-                  <FormulaRow label="DSA Progress" value="25%" />
+                  <FormulaRow label="Profile Strength" value="15%" />
+                  <FormulaRow label="Roadmap Progress" value="15%" />
+                  <FormulaRow label="Resume Score" value="20%" />
+                  <FormulaRow label="DSA Progress" value="20%" />
+                  <FormulaRow label="Mock Interview" value="20%" />
                   <FormulaRow label="Consistency" value="10%" />
                 </div>
               </div>

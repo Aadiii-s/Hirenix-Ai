@@ -62,7 +62,13 @@ const Sidebar = () => {
       label: "Mock Interview",
       path: "/mock-interview",
       icon: Brain,
-      disabled: true,
+      disabled: false,
+    },
+    {
+      label: "Interview History",
+      path: "/mock-interviews",
+      icon: Brain,
+      disabled: false,
     },
     {
       label: "Analytics",
@@ -103,8 +109,8 @@ const Sidebar = () => {
 
           <div
             className={`mt-4 rounded-full px-3 py-1 text-xs font-medium ${user?.isProfileCompleted
-                ? "bg-green-500/10 text-green-300"
-                : "bg-yellow-500/10 text-yellow-300"
+              ? "bg-green-500/10 text-green-300"
+              : "bg-yellow-500/10 text-yellow-300"
               }`}
           >
             {user?.isProfileCompleted ? "Profile Complete" : "Profile Pending"}
@@ -139,8 +145,8 @@ const Sidebar = () => {
                 key={item.label}
                 to={item.path}
                 className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${isActive
-                    ? "bg-blue-600 text-white"
-                    : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-300 hover:bg-slate-900 hover:text-white"
                   }`}
               >
                 <Icon size={18} />

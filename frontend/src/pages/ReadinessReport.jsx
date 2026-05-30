@@ -9,6 +9,7 @@ import {
   Target,
   Trophy,
   User,
+  Brain,
 } from "lucide-react";
 
 import { getReadinessScoreApi } from "../api/readiness.api";
@@ -162,6 +163,20 @@ const ReadinessReport = () => {
       buttonText: "Open DSA Tracker",
       description:
         "DSA progress is based on solved questions out of total tracked questions.",
+    },
+    {
+      label: "Mock Interview",
+      icon: Brain,
+      score: readiness.breakdown.interview.score,
+      weight: readiness.breakdown.interview.weight,
+      contribution: readiness.breakdown.interview.contribution,
+      path: "/mock-interview",
+      buttonText:
+        readiness.breakdown.interview.completedInterviews > 0
+          ? "Practice More"
+          : "Start Interview",
+      description:
+        "Mock interview score is based on your completed interview performance and helps improve communication, confidence, and technical explanation.",
     },
     {
       label: "Consistency",
@@ -337,10 +352,11 @@ const ReadinessReport = () => {
               </div>
 
               <div className="space-y-4">
-                <FormulaRow label="Profile Strength" value="20%" />
-                <FormulaRow label="Roadmap Progress" value="20%" />
-                <FormulaRow label="Resume Score" value="25%" />
-                <FormulaRow label="DSA Progress" value="25%" />
+                <FormulaRow label="Profile Strength" value="15%" />
+                <FormulaRow label="Roadmap Progress" value="15%" />
+                <FormulaRow label="Resume Score" value="20%" />
+                <FormulaRow label="DSA Progress" value="20%" />
+                <FormulaRow label="Mock Interview" value="20%" />
                 <FormulaRow label="Consistency" value="10%" />
               </div>
 
@@ -453,6 +469,19 @@ const NextActionButton = ({ action }) => {
       </Link>
     );
   }
+  if (
+  normalizedAction.includes("interview") ||
+  normalizedAction.includes("mock")
+) {
+  return (
+    <Link
+      to="/mock-interview"
+      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+    >
+      Start Mock Interview
+    </Link>
+  );
+}
 
   return (
     <Link

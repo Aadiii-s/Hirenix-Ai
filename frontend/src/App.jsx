@@ -16,6 +16,9 @@ import ResumeAnalysisHistory from "./pages/ResumeAnalysisHistory";
 import ResumeAnalysisDetails from "./pages/ResumeAnalysisDetails";
 import DsaTracker from "./pages/DsaTracker";
 import ReadinessReport from "./pages/ReadinessReport";
+import MockInterview from "./pages/MockInterview";
+import MockInterviewHistory from "./pages/MockInterviewHistory";
+import MockInterviewSession from "./pages/MockInterviewSession";
 
 function App() {
   return (
@@ -79,48 +82,72 @@ function App() {
           </ProtectedRoute>
         }
       />
-      <Route 
+      <Route
         path="/resume-analyzer"
-        element ={
+        element={
           <ProtectedRoute>
-            <ResumeAnalyzer/>
+            <ResumeAnalyzer />
           </ProtectedRoute>
         }
-        />
+      />
 
       <Route
-         path="/resume-analyses"
-         element ={
+        path="/resume-analyses"
+        element={
           <ProtectedRoute>
-            <ResumeAnalysisHistory/>
+            <ResumeAnalysisHistory />
           </ProtectedRoute>
-         }
-        />
-      
+        }
+      />
+
       <Route
         path="/resume-analyses/:id"
-        element ={
+        element={
           <ProtectedRoute>
-            <ResumeAnalysisDetails/>
+            <ResumeAnalysisDetails />
           </ProtectedRoute>
         }
       />
       <Route
         path="/dsa-tracker"
-        element ={
+        element={
           <ProtectedRoute>
             <DsaTracker />
           </ProtectedRoute>
         }
-        />
-        <Route
-          path="/readiness"
-          element ={
-            <ProtectedRoute>
-              <ReadinessReport />
-            </ProtectedRoute>
-          }
-          />
+      />
+      <Route
+        path="/readiness"
+        element={
+          <ProtectedRoute>
+            <ReadinessReport />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mock-interview"
+        element={
+          <ProtectedRoute>
+            <MockInterview />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mock-interviews"
+        element={
+          <ProtectedRoute>
+            <MockInterviewHistory />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mock-interviews/:id"
+        element={
+          <ProtectedRoute>
+            <MockInterviewSession />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
