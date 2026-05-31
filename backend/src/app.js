@@ -9,6 +9,7 @@ import resumeRoutes from "./routes/resume.routes.js";
 import dsaRoutes from "./routes/dsa.routes.js"
 import readinessRoutes from "./routes/readiness.routes.js"
 import interviewRoutes from "./routes/interview.routes.js"
+import skillGapRoutes from "./routes/skillGap.routes.js"
 
 import errorMiddleware from "./middlewares/error.middleware.js";
 import notFoundMiddleware from "./middlewares/notFound.middleware.js";
@@ -40,6 +41,7 @@ app.use("/api/resumes", resumeRoutes);
 app.use("/api/dsa", dsaRoutes);
 app.use("/api/readiness", readinessRoutes);
 app.use("/api/interviews",interviewRoutes);
+app.use("/api/skill-gap", skillGapRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
