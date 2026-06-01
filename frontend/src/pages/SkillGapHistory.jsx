@@ -1,63 +1,67 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Brain, Calendar, Eye, Plus, Search, Trash2 } from "lucide-react";
+import { Calendar, Eye, Plus, Search, Trash2 } from "lucide-react";
 
 import {
-  deleteMockInterviewApi,
-  getMyMockInterviewsApi,
-} from "../api/interview.api";
+  deleteSkillGapAnalysisApi,
+  getMySkillGapAnalysesApi,
+} from "../api/skillGap.api";
 import MobileHeader from "../components/MobileHeader";
 import Sidebar from "../components/Sidebar";
 
-const MockInterviewHistory = () => {
-  const [interviews, setInterviews] = useState([]);
+const SkillGapHistory = () => {
+  const [analyses, setAnalyses] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [deletingId, setDeletingId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchInterviews = async () => {
+  const fetchAnalyses = async () => {
     try {
       setLoading(true);
 
-      const response = await getMyMockInterviewsApi();
+      const response = await getMySkillGapAnalysesApi();
 
-      setInterviews(response.data);
+      setAnalyses(response.data);
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to fetch interviews");
+      setError(
+        error.response?.data?.message || "Failed to fetch skill gap analyses"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInterviews();
+    fetchAnalyses();
   }, []);
 
-  const handleDelete = async (interviewId) => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to delete this interview?"
+  const handleDelete = async (analysisId) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this skill gap analysis?"
     );
 
-    if (!isConfirmed) return;
+    if (!confirmed) return;
 
     try {
-      setDeletingId(interviewId);
+      setDeletingId(analysisId);
 
-      await deleteMockInterviewApi(interviewId);
+      await deleteSkillGapAnalysisApi(analysisId);
 
-      setInterviews((prev) =>
-        prev.filter((interview) => interview._id !== interviewId)
+      setAnalyses((prev) =>
+        prev.filter((analysis) => analysis._id !== analysisId)
       );
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to delete interview");
+      alert(error.response?.data?.message || "Failed to delete analysis");
     } finally {
       setDeletingId("");
     }
   };
 
-  const filteredInterviews = interviews.filter((interview) =>
-    `${interview.title} ${interview.interviewType} ${interview.targetRole}`
+  const filteredAnalyses = analyses.filter((analysis) =>
+    `${analysis.targetRole} ${analysis.summary} ${analysis.missingSkills?.join(
+      " "
+    )}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
   );
@@ -81,25 +85,25 @@ const MockInterviewHistory = () => {
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="font-medium text-blue-400">Mock Interview History</p>
-              <h1 className="mt-2 text-4xl font-bold">Your Interviews</h1>
+              <p className="font-medium text-blue-400">Skill Gap History</p>
+              <h1 className="mt-2 text-4xl font-bold">Your Skill Gap Reports</h1>
               <p className="mt-2 text-slate-400">
-                Review all your AI mock interview sessions and scores.
+                Review your AI-generated skill gap analyses and learning plans.
               </p>
             </div>
 
             <Link
-              to="/mock-interview"
+              to="/skill-gap"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
             >
               <Plus size={18} />
-              New Interview
+              New Analysis
             </Link>
           </div>
 
           <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
             <label className="mb-2 block text-sm text-slate-300">
-              Search by title, type, or role
+              Search by role, summary, or missing skill
             </label>
 
             <div className="relative">
@@ -111,7 +115,7 @@ const MockInterviewHistory = () => {
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search MERN, HR, project..."
+                placeholder="Search DP, system design, SDE..."
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-4 outline-none focus:border-blue-500"
               />
             </div>
@@ -125,28 +129,27 @@ const MockInterviewHistory = () => {
 
           {loading ? (
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-              Loading interviews...
+              Loading analyses...
             </div>
-          ) : interviews.length === 0 ? (
+          ) : analyses.length === 0 ? (
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center">
-              <Brain className="mx-auto mb-4 text-blue-300" size={40} />
-
-              <h2 className="text-2xl font-bold">No interviews yet</h2>
+              <h2 className="text-2xl font-bold">No skill gap analysis yet</h2>
               <p className="mt-2 text-slate-400">
-                Start your first AI mock interview.
+                Generate your first AI skill gap analysis.
               </p>
 
               <Link
-                to="/mock-interview"
+                to="/skill-gap"
                 className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
               >
                 <Plus size={18} />
-                Start Interview
+                Generate Analysis
               </Link>
             </div>
-          ) : filteredInterviews.length === 0 ? (
+          ) : filteredAnalyses.length === 0 ? (
             <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center">
-              <h2 className="text-2xl font-bold">No matching interviews</h2>
+              <h2 className="text-2xl font-bold">No matching analyses</h2>
+
               <button
                 onClick={() => setSearchTerm("")}
                 className="mt-5 rounded-xl border border-slate-700 px-5 py-3 text-slate-300 hover:bg-slate-800"
@@ -156,78 +159,51 @@ const MockInterviewHistory = () => {
             </div>
           ) : (
             <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-              {filteredInterviews.map((interview) => (
+              {filteredAnalyses.map((analysis) => (
                 <div
-                  key={interview._id}
+                  key={analysis._id}
                   className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
                 >
-                  <div className="mb-4 flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="line-clamp-2 text-xl font-semibold">
-                        {interview.title}
-                      </h2>
-                      <p className="mt-2 text-sm text-slate-400">
-                        {interview.targetRole}
-                      </p>
-                    </div>
+                  <h2 className="line-clamp-2 text-xl font-semibold">
+                    {analysis.targetRole}
+                  </h2>
 
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        interview.status === "completed"
-                          ? "bg-green-500/10 text-green-300"
-                          : "bg-blue-500/10 text-blue-300"
-                      }`}
-                    >
-                      {interview.status.replace("_", " ")}
-                    </span>
+                  <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-400">
+                    {analysis.summary || "Skill gap analysis report"}
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {analysis.missingSkills?.slice(0, 4).map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-300"
+                      >
+                        {skill}
+                      </span>
+                    ))}
                   </div>
 
-                  <div className="space-y-3 text-sm text-slate-400">
-                    <p className="capitalize">
-                      Type:{" "}
-                      <span className="text-slate-200">
-                        {interview.interviewType}
-                      </span>
-                    </p>
-
-                    <p className="capitalize">
-                      Difficulty:{" "}
-                      <span className="text-slate-200">
-                        {interview.difficulty}
-                      </span>
-                    </p>
-
-                    <p>
-                      Score:{" "}
-                      <span className="text-slate-200">
-                        {interview.status === "completed"
-                          ? `${interview.overallScore}%`
-                          : "Pending"}
-                      </span>
-                    </p>
-
-                    <p className="flex items-center gap-2">
-                      <Calendar size={16} />
-                      {new Date(interview.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
+                  <p className="mt-4 flex items-center gap-2 text-sm text-slate-400">
+                    <Calendar size={16} />
+                    {new Date(analysis.createdAt).toLocaleDateString()}
+                  </p>
 
                   <div className="mt-6 flex gap-3">
                     <Link
-                      to={`/mock-interviews/${interview._id}`}
+                      to={`/skill-gap/${analysis._id}`}
                       className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold hover:bg-blue-700"
                     >
                       <Eye size={16} />
-                      {interview.status === "completed" ? "Report" : "Continue"}
+                      View
                     </Link>
 
                     <button
-                      onClick={() => handleDelete(interview._id)}
-                      disabled={deletingId === interview._id}
+                      onClick={() => handleDelete(analysis._id)}
+                      disabled={deletingId === analysis._id}
                       className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-60"
                     >
                       <Trash2 size={16} />
-                      {deletingId === interview._id ? "..." : "Delete"}
+                      {deletingId === analysis._id ? "..." : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -240,4 +216,4 @@ const MockInterviewHistory = () => {
   );
 };
 
-export default MockInterviewHistory;
+export default SkillGapHistory;

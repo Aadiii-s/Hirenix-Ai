@@ -19,6 +19,9 @@ import ReadinessReport from "./pages/ReadinessReport";
 import MockInterview from "./pages/MockInterview";
 import MockInterviewHistory from "./pages/MockInterviewHistory";
 import MockInterviewSession from "./pages/MockInterviewSession";
+import SkillGapAnalyzer from "./pages/SkillGapAnalyzer";
+import SkillGapDetails from "./pages/SkillGapDetails";
+import SkillGapHistory from "./pages/SkillGapHistory";
 
 function App() {
   return (
@@ -145,6 +148,32 @@ function App() {
         element={
           <ProtectedRoute>
             <MockInterviewSession />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/skill-gap"
+        element={
+          <ProtectedRoute>
+            <SkillGapAnalyzer />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/skill-gap/history"
+        element={
+          <ProtectedRoute>
+            <SkillGapHistory />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/skill-gap/:id"
+        element={
+          <ProtectedRoute>
+            <SkillGapDetails />
           </ProtectedRoute>
         }
       />

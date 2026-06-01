@@ -17,18 +17,16 @@ Analyze the student's current preparation and identify skill gaps for their targ
 Student:
 - Name: ${fullName}
 - Target Role: ${targetRole || "Software Development Engineer"}
-- Target Companies: ${
-    targetCompanies?.length ? targetCompanies.join(", ") : "General product-based companies"
-  }
+- Target Companies: ${targetCompanies?.length ? targetCompanies.join(", ") : "General product-based companies"
+    }
 - Current Skills: ${userSkills?.length ? userSkills.join(", ") : "Not provided"}
 
 Resume:
 - ATS Score: ${resumeScore || 0}
-- Missing Resume Keywords: ${
-    resumeMissingKeywords?.length
+- Missing Resume Keywords: ${resumeMissingKeywords?.length
       ? resumeMissingKeywords.join(", ")
       : "Not available"
-  }
+    }
 
 DSA:
 - Total Questions: ${dsaStats?.totalQuestions || 0}
@@ -63,6 +61,7 @@ Do not add explanation outside JSON.
       "suggestedAction": "string"
     }
   ],
+  "topThreeFocusAreas": ["string", "string", "string"],
   "learningPlan": [
     {
       "week": 1,
@@ -81,6 +80,7 @@ Rules:
 - strongSkills should be skills already visible.
 - prioritySkills should include 5 to 8 most important skills.
 - priority must be high, medium, or low.
+- topThreeFocusAreas should contain exactly 3 short focus areas the user should work on this week.
 - learningPlan should be 4 weeks.
 - Focus on DSA, CS fundamentals, projects, resume, communication, system design, aptitude where needed.
 - Be strict but practical.

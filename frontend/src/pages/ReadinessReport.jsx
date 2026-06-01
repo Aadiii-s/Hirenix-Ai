@@ -199,7 +199,14 @@ const ReadinessReport = () => {
         <MobileHeader />
       </div>
 
-      <main className="flex-1 px-6 py-6 lg:px-8">
+      <main
+  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
+  [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-slate-950
+  [&::-webkit-scrollbar-thumb]:rounded-full
+  [&::-webkit-scrollbar-thumb]:bg-gray-900
+  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
+>
         <div className="mx-auto max-w-7xl">
           <div className="mb-8">
             <Link
@@ -470,18 +477,18 @@ const NextActionButton = ({ action }) => {
     );
   }
   if (
-  normalizedAction.includes("interview") ||
-  normalizedAction.includes("mock")
-) {
-  return (
-    <Link
-      to="/mock-interview"
-      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
-    >
-      Start Mock Interview
-    </Link>
-  );
-}
+    normalizedAction.includes("interview") ||
+    normalizedAction.includes("mock")
+  ) {
+    return (
+      <Link
+        to="/mock-interview"
+        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+      >
+        Start Mock Interview
+      </Link>
+    );
+  }
 
   return (
     <Link

@@ -60,6 +60,10 @@ const skillGapAnalysisSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    topThreeFocusAreas: {
+      type: [String],
+      default: [],
+    },
 
     learningPlan: {
       type: [

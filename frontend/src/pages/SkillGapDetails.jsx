@@ -1,0 +1,367 @@
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Flame,
+  Lightbulb,
+  Target,
+  XCircle,
+} from "lucide-react";
+
+import { getSkillGapAnalysisByIdApi } from "../api/skillGap.api";
+import MobileHeader from "../components/MobileHeader";
+import Sidebar from "../components/Sidebar";
+
+const SkillGapDetails = () => {
+  const { id } = useParams();
+
+  const [analysis, setAnalysis] = useState(null);
+  const [activeTab, setActiveTab] = useState("skills");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchAnalysis = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getSkillGapAnalysisByIdApi(id);
+
+      setAnalysis(response.data);
+    } catch (error) {
+      setError(
+        error.response?.data?.message || "Failed to fetch skill gap analysis"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalysis();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
+          Loading skill gap report...
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
+          <p>{error}</p>
+
+          <Link
+            to="/skill-gap/history"
+            className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+          >
+            Back to History
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!analysis) return null;
+
+  return (
+    <Layout>
+      <div className="mb-8">
+        <Link
+          to="/skill-gap/history"
+          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
+        >
+          <ArrowLeft size={16} />
+          Back to skill gap history
+        </Link>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <p className="font-medium text-blue-400">Skill Gap Report</p>
+
+          <h1 className="mt-2 text-3xl font-bold">{analysis.targetRole}</h1>
+
+          <p className="mt-4 text-slate-300">{analysis.summary}</p>
+
+          <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Target size={18} className="text-blue-300" />
+              <h2 className="font-semibold text-blue-200">
+                Focus This Week
+              </h2>
+            </div>
+
+            {analysis.topThreeFocusAreas?.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {analysis.topThreeFocusAreas.map((focus) => (
+                  <span
+                    key={focus}
+                    className="rounded-full border border-blue-500/30 bg-slate-950 px-4 py-2 text-sm font-medium text-blue-300"
+                  >
+                    {focus}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">
+                Generate a new skill gap analysis to get weekly focus areas.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-4">
+            <InfoBox
+              label="Missing Skills"
+              value={analysis.missingSkills?.length || 0}
+            />
+            <InfoBox
+              label="Weak Skills"
+              value={analysis.weakSkills?.length || 0}
+            />
+            <InfoBox
+              label="Strong Skills"
+              value={analysis.strongSkills?.length || 0}
+            />
+            <InfoBox label="Impact" value={analysis.readinessImpact} />
+          </div>
+        </div>
+      </div>
+
+      <section className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <SkillListCard
+          title="Missing Skills"
+          icon={XCircle}
+          items={analysis.missingSkills}
+          color="red"
+        />
+
+        <SkillListCard
+          title="Weak Skills"
+          icon={Flame}
+          items={analysis.weakSkills}
+          color="yellow"
+        />
+
+        <SkillListCard
+          title="Strong Skills"
+          icon={CheckCircle2}
+          items={analysis.strongSkills}
+          color="green"
+        />
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <div className="mb-6 flex flex-wrap gap-3">
+          {[
+            ["skills", "Priority Skills"],
+            ["plan", "4-Week Plan"],
+            ["required", "Required Skills"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                activeTab === key
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-950 text-slate-400"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "skills" && (
+          <div className="space-y-4">
+            {analysis.prioritySkills?.length > 0 ? (
+              analysis.prioritySkills.map((item, index) => (
+                <div
+                  key={index}
+                  className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
+                >
+                  <div className="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm text-blue-400">
+                        Priority Skill #{index + 1}
+                      </p>
+                      <h3 className="mt-1 text-xl font-semibold">
+                        {item.skill}
+                      </h3>
+                    </div>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                        item.priority === "high"
+                          ? "bg-red-500/10 text-red-300"
+                          : item.priority === "medium"
+                          ? "bg-yellow-500/10 text-yellow-300"
+                          : "bg-green-500/10 text-green-300"
+                      }`}
+                    >
+                      {item.priority}
+                    </span>
+                  </div>
+
+                  <p className="text-sm leading-6 text-slate-400">
+                    <span className="font-semibold text-slate-300">
+                      Reason:
+                    </span>{" "}
+                    {item.reason}
+                  </p>
+
+                  <p className="mt-3 text-sm leading-6 text-slate-400">
+                    <span className="font-semibold text-slate-300">
+                      Suggested Action:
+                    </span>{" "}
+                    {item.suggestedAction}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <EmptyState text="No priority skills available." />
+            )}
+          </div>
+        )}
+
+        {activeTab === "plan" && (
+          <div className="space-y-4">
+            {analysis.learningPlan?.length > 0 ? (
+              analysis.learningPlan.map((week) => (
+                <div
+                  key={week.week}
+                  className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
+                >
+                  <p className="text-sm text-blue-400">Week {week.week}</p>
+                  <h3 className="mt-1 text-xl font-semibold">{week.focus}</h3>
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {week.skills?.map((skill) => (
+                      <span
+                        key={skill}
+                        className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-300"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+
+                  <ul className="mt-4 space-y-2">
+                    {week.tasks?.map((task, index) => (
+                      <li
+                        key={index}
+                        className="rounded-xl bg-slate-900 px-4 py-3 text-sm text-slate-300"
+                      >
+                        {task}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))
+            ) : (
+              <EmptyState text="No learning plan available." />
+            )}
+          </div>
+        )}
+
+        {activeTab === "required" && (
+          <div className="flex flex-wrap gap-2">
+            {analysis.requiredSkills?.length > 0 ? (
+              analysis.requiredSkills.map((skill) => (
+                <span
+                  key={skill}
+                  className="rounded-full bg-purple-500/10 px-3 py-1 text-sm text-purple-300"
+                >
+                  {skill}
+                </span>
+              ))
+            ) : (
+              <EmptyState text="No required skills available." />
+            )}
+          </div>
+        )}
+      </section>
+    </Layout>
+  );
+};
+
+const Layout = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-slate-950 text-white lg:flex">
+      <Sidebar />
+
+      <div className="lg:hidden">
+        <MobileHeader />
+      </div>
+
+      <main
+  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
+  [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-slate-950
+  [&::-webkit-scrollbar-thumb]:rounded-full
+  [&::-webkit-scrollbar-thumb]:bg-gray-900
+  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
+>
+        <div className="mx-auto max-w-7xl">{children}</div>
+      </main>
+    </div>
+  );
+};
+
+const InfoBox = ({ label, value }) => {
+  return (
+    <div className="rounded-xl bg-slate-950 p-4">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-1 font-semibold capitalize">{value}</p>
+    </div>
+  );
+};
+
+const SkillListCard = ({ title, icon: Icon, items = [], color }) => {
+  const colorClass =
+    color === "red"
+      ? "text-red-300 bg-red-500/10"
+      : color === "yellow"
+      ? "text-yellow-300 bg-yellow-500/10"
+      : "text-green-300 bg-green-500/10";
+
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <div className={`mb-4 w-fit rounded-xl p-3 ${colorClass}`}>
+        <Icon size={22} />
+      </div>
+
+      <h2 className="text-xl font-semibold">{title}</h2>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {items?.length > 0 ? (
+          items.map((item) => (
+            <span
+              key={item}
+              className="rounded-full bg-slate-950 px-3 py-1 text-sm text-slate-300"
+            >
+              {item}
+            </span>
+          ))
+        ) : (
+          <p className="text-sm text-slate-400">No data available.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const EmptyState = ({ text }) => {
+  return (
+    <div className="rounded-xl bg-slate-950 p-8 text-center text-slate-400">
+      {text}
+    </div>
+  );
+};
+
+export default SkillGapDetails;

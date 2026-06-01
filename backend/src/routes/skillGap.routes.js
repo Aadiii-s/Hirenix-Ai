@@ -6,7 +6,7 @@ import {
   getLatestSkillGapAnalysis,
   getMySkillGapAnalyses,
   getSkillGapAnalysisById,
-} from "../controllers/sillGap.controller.js";
+} from "../controllers/skillGap.controller.js";
 
 import { protect } from "../middlewares/auth.middleware.js";
 

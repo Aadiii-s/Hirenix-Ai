@@ -8,7 +8,7 @@ import SkillGapAnalysis from "../models/skillGapAnalysis.model.js";
 
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import {asyncHandler} from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 import { buildSkillGapPrompt } from "../utils/skillGapPrompt.js";
 import {
   generateAIContent,
@@ -66,11 +66,11 @@ const getInterviewStatsForUser = async (userId) => {
     completedInterviews.length === 0
       ? 0
       : Math.round(
-          completedInterviews.reduce(
-            (sum, interview) => sum + interview.overallScore,
-            0
-          ) / completedInterviews.length
-        );
+        completedInterviews.reduce(
+          (sum, interview) => sum + interview.overallScore,
+          0
+        ) / completedInterviews.length
+      );
 
   return {
     completedInterviews: completedInterviews.length,
@@ -94,6 +94,7 @@ export const generateSkillGapAnalysis = asyncHandler(async (req, res) => {
     user: user._id,
   }).sort({ createdAt: -1 });
 
+
   const dsaStats = await getDsaStatsForUser(user._id);
   const interviewStats = await getInterviewStatsForUser(user._id);
 
@@ -112,6 +113,19 @@ export const generateSkillGapAnalysis = asyncHandler(async (req, res) => {
   const aiText = await generateAIContent(prompt);
   const parsed = parseAIJsonResponse(aiText);
 
+  const topThreeFocusAreas =
+  parsed.topThreeFocusAreas?.length > 0
+    ? parsed.topThreeFocusAreas
+        .slice(0, 3)
+        .map((focus) => (typeof focus === "string" ? focus : focus?.skill))
+        .filter(Boolean)
+    : parsed.prioritySkills?.length > 0
+    ? parsed.prioritySkills
+        .slice(0, 3)
+        .map((item) => (typeof item === "string" ? item : item?.skill))
+        .filter(Boolean)
+    : [];
+
   const analysis = await SkillGapAnalysis.create({
     user: user._id,
     targetRole,
@@ -122,6 +136,7 @@ export const generateSkillGapAnalysis = asyncHandler(async (req, res) => {
     weakSkills: parsed.weakSkills || [],
     strongSkills: parsed.strongSkills || [],
     prioritySkills: parsed.prioritySkills || [],
+    topThreeFocusAreas: parsed.topThreeFocusAreas || [],
     learningPlan: parsed.learningPlan || [],
     summary: parsed.summary || "",
     readinessImpact: parsed.readinessImpact || "medium",

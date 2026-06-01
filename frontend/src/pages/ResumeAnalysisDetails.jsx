@@ -74,7 +74,14 @@ const ResumeAnalysisDetails = () => {
                     <MobileHeader />
                 </div>
 
-                <main className="flex-1 px-6 py-6 lg:px-8">
+                <main
+  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
+  [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-slate-950
+  [&::-webkit-scrollbar-thumb]:rounded-full
+  [&::-webkit-scrollbar-thumb]:bg-gray-900
+  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
+>
                     <div className="mx-auto max-w-7xl rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
                         <p>{error}</p>
 

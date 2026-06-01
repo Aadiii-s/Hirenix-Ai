@@ -9,6 +9,7 @@ import {
   LogOut,
   Route,
   User,
+  BrainCircuit,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -71,6 +72,18 @@ const Sidebar = () => {
       disabled: false,
     },
     {
+      label: "Skill Gap",
+      path: "/skill-gap",
+      icon: BrainCircuit,
+      disabled: false,
+    },
+    {
+      label: "Skill Gap History",
+      path: "/skill-gap/history",
+      icon: BrainCircuit,
+      disabled: false,
+    },
+    {
       label: "Analytics",
       path: "/analytics",
       icon: BarChart3,
@@ -84,7 +97,13 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="hidden lg:flex min-h-screen w-72 flex-col border-r border-slate-800 bg-slate-950 text-white">
+    <aside className="h-screen overflow-y-auto border-r border-slate-800 bg-slate-950
+  [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-slate-950
+  [&::-webkit-scrollbar-thumb]:rounded-full
+  [&::-webkit-scrollbar-thumb]:bg-gray-900
+  hover:[&::-webkit-scrollbar-thumb]:bg-gray-800
+">
       <div className="border-b border-slate-800 px-6 py-5">
         <Link to="/dashboard">
           <h1 className="text-2xl font-bold">Hirenix AI</h1>
