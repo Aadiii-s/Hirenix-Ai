@@ -198,14 +198,14 @@ const Dashboard = () => {
       locked: false,
     },
     {
-  title: "Company Tracker",
-  description:
-    "Track company-wise preparation, application status, tasks, and progress.",
-  icon: Building2,
-  status: "Ready",
-  path: "/companies",
-  locked: false,
-},
+      title: "Company Tracker",
+      description:
+        "Track company-wise preparation, application status, tasks, and progress.",
+      icon: Building2,
+      status: "Ready",
+      path: "/companies",
+      locked: false,
+    },
     {
       title: "Mock Interview",
       description:
@@ -224,6 +224,15 @@ const Dashboard = () => {
       path: "/skill-gap",
       locked: false,
     },
+    {
+  title: "Global Analytics",
+  description:
+    "View complete preparation insights across resume, DSA, interviews, roadmap, skill gaps, and companies.",
+  icon: BarChart3,
+  status: "Ready",
+  path: "/analytics",
+  locked: false,
+},
   ];
 
   const targetCompaniesText =

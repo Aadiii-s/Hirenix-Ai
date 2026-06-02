@@ -24,6 +24,7 @@ import SkillGapDetails from "./pages/SkillGapDetails";
 import SkillGapHistory from "./pages/SkillGapHistory";
 import CompanyTracker from "./pages/CompanyTracker";
 import CompanyDetails from "./pages/CompanyDetails";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 
 function App() {
   return (
@@ -196,6 +197,14 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+  path="/analytics"
+  element={
+    <ProtectedRoute>
+      <AnalyticsDashboard />
+    </ProtectedRoute>
+  }
+/>
 
       <Route path="*" element={<NotFound />} />
     </Routes>

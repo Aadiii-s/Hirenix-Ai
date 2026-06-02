@@ -11,6 +11,7 @@ import {
   User,
   BrainCircuit,
   Building2,
+  BarChart,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -85,16 +86,16 @@ const Sidebar = () => {
       disabled: false,
     },
     {
-  label: "Companies",
-  path: "/companies",
-  icon: Building2,
-  disabled: false,
-},
+      label: "Companies",
+      path: "/companies",
+      icon: Building2,
+      disabled: false,
+    },
     {
       label: "Analytics",
       path: "/analytics",
       icon: BarChart3,
-      disabled: true,
+      disabled: false,
     },
   ];
 
