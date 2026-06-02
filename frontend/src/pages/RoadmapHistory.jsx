@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Calendar, Eye, Plus, Search, Trash2 } from "lucide-react";
-
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
 import { deleteRoadmapApi, getMyRoadmapsApi } from "../api/roadmap.api";
+import AppLayout from "../components/AppLayout";
 
 const RoadmapHistory = () => {
   const [roadmaps, setRoadmaps] = useState([]);
@@ -68,21 +66,7 @@ const RoadmapHistory = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
+    <AppLayout>
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -260,8 +244,7 @@ const RoadmapHistory = () => {
             </section>
           )}
         </div>
-      </main>
-    </div>
+      </AppLayout>
   );
 };
 

@@ -15,8 +15,7 @@ import {
 } from "lucide-react";
 
 import { getAnalyticsOverviewApi } from "../api/analytics.api";
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
+import AppLayout from "../components/AppLayout";
 
 const AnalyticsDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -26,6 +25,7 @@ const AnalyticsDashboard = () => {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const response = await getAnalyticsOverviewApi();
 
@@ -45,17 +45,17 @@ const AnalyticsDashboard = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-400">
           Loading analytics overview...
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
           <p>{error}</p>
 
@@ -66,14 +66,14 @@ const AnalyticsDashboard = () => {
             Retry
           </button>
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   if (!analytics) return null;
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="mb-8">
         <Link
           to="/dashboard"
@@ -90,7 +90,9 @@ const AnalyticsDashboard = () => {
 
           <div>
             <p className="font-medium text-blue-400">Global Analytics</p>
-            <h1 className="text-4xl font-bold">Preparation Analytics Dashboard</h1>
+            <h1 className="text-4xl font-bold">
+              Preparation Analytics Dashboard
+            </h1>
           </div>
         </div>
 
@@ -169,9 +171,7 @@ const AnalyticsDashboard = () => {
 
             <div>
               <h2 className="text-xl font-semibold">Weak Areas</h2>
-              <p className="text-sm text-slate-400">
-                Improve these first
-              </p>
+              <p className="text-sm text-slate-400">Improve these first</p>
             </div>
           </div>
 
@@ -291,30 +291,7 @@ const AnalyticsDashboard = () => {
         <InterviewAnalyticsCard interviewStats={analytics.interviewStats} />
         <CompanyAnalyticsCard companyStats={analytics.companyStats} />
       </section>
-    </Layout>
-  );
-};
-
-const Layout = ({ children }) => {
-  return (
-    <div className="h-screen overflow-hidden bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-        className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-        [&::-webkit-scrollbar]:w-2
-        [&::-webkit-scrollbar-track]:bg-slate-950
-        [&::-webkit-scrollbar-thumb]:rounded-full
-        [&::-webkit-scrollbar-thumb]:bg-gray-900
-        hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
-      >
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
-    </div>
+    </AppLayout>
   );
 };
 
@@ -349,7 +326,9 @@ const ModuleScoreRow = ({ module }) => {
           <p className="text-sm text-slate-500">Score: {module.score}%</p>
         </div>
 
-        <span className={`rounded-full px-3 py-1 text-xs capitalize ${levelClass}`}>
+        <span
+          className={`rounded-full px-3 py-1 text-xs capitalize ${levelClass}`}
+        >
           {module.level}
         </span>
       </div>
@@ -384,7 +363,9 @@ const QuickActionCard = ({ action }) => {
       <div className="mb-3 flex items-start justify-between gap-3">
         <h3 className="text-lg font-semibold">{action.title}</h3>
 
-        <span className={`rounded-full px-3 py-1 text-xs capitalize ${priorityClass}`}>
+        <span
+          className={`rounded-full px-3 py-1 text-xs capitalize ${priorityClass}`}
+        >
           {action.priority}
         </span>
       </div>
@@ -411,9 +392,7 @@ const DsaAnalyticsCard = ({ dsaStats }) => {
 
         <div>
           <h2 className="text-xl font-semibold">DSA Analytics</h2>
-          <p className="text-sm text-slate-400">
-            Coding progress overview
-          </p>
+          <p className="text-sm text-slate-400">Coding progress overview</p>
         </div>
       </div>
 
@@ -460,14 +439,15 @@ const InterviewAnalyticsCard = ({ interviewStats }) => {
 
         <div>
           <h2 className="text-xl font-semibold">Interview Analytics</h2>
-          <p className="text-sm text-slate-400">
-            Mock interview performance
-          </p>
+          <p className="text-sm text-slate-400">Mock interview performance</p>
         </div>
       </div>
 
       <div className="space-y-3 text-sm text-slate-300">
-        <InfoRow label="Total Interviews" value={interviewStats?.totalInterviews || 0} />
+        <InfoRow
+          label="Total Interviews"
+          value={interviewStats?.totalInterviews || 0}
+        />
         <InfoRow
           label="Completed"
           value={interviewStats?.completedInterviews || 0}
@@ -507,14 +487,15 @@ const CompanyAnalyticsCard = ({ companyStats }) => {
 
         <div>
           <h2 className="text-xl font-semibold">Company Analytics</h2>
-          <p className="text-sm text-slate-400">
-            Target company progress
-          </p>
+          <p className="text-sm text-slate-400">Target company progress</p>
         </div>
       </div>
 
       <div className="space-y-3 text-sm text-slate-300">
-        <InfoRow label="Total Companies" value={companyStats?.totalCompanies || 0} />
+        <InfoRow
+          label="Total Companies"
+          value={companyStats?.totalCompanies || 0}
+        />
         <InfoRow
           label="High Priority"
           value={companyStats?.highPriorityCompanies || 0}

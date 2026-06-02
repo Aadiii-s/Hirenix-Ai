@@ -13,8 +13,7 @@ import {
   getMockInterviewByIdApi,
   submitInterviewAnswerApi,
 } from "../api/interview.api";
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
+import AppLayout from "../components/AppLayout";
 
 const MockInterviewSession = () => {
   const { id } = useParams();
@@ -139,7 +138,7 @@ const MockInterviewSession = () => {
   if (!interview) return null;
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="mb-8">
         <Link
           to="/mock-interviews"
@@ -273,23 +272,18 @@ const MockInterviewSession = () => {
           </aside>
         </section>
       )}
-    </Layout>
+    </AppLayout>
   );
 };
 
 const Layout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
+    <AppLayout>
 
       <main className="flex-1 px-6 py-6 lg:px-8">
         <div className="mx-auto max-w-7xl">{children}</div>
       </main>
-    </div>
+    </AppLayout>
   );
 };
 

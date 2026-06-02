@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
-import MobileHeader from "../components/MobileHeader";
+import AppLayout from "../components/AppLayout";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -60,21 +59,7 @@ const Profile = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader/>
-      </div>
-
-      <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
+    <AppLayout>
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -106,11 +91,10 @@ const Profile = () => {
                   <p className="text-slate-400">{user?.email}</p>
 
                   <span
-                    className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-medium ${
-                      user?.isProfileCompleted
+                    className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-medium ${user?.isProfileCompleted
                         ? "bg-green-500/10 text-green-300"
                         : "bg-yellow-500/10 text-yellow-300"
-                    }`}
+                      }`}
                   >
                     {user?.isProfileCompleted
                       ? "Profile Completed"
@@ -191,8 +175,7 @@ const Profile = () => {
             </div>
           </section>
         </div>
-      </main>
-    </div>
+      </AppLayout>
   );
 };
 

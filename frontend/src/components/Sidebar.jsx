@@ -105,13 +105,15 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="h-screen overflow-y-auto border-r border-slate-800 bg-slate-950
+    <aside
+  className="hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-slate-800 bg-slate-900
+  lg:sticky lg:top-0 lg:block
   [&::-webkit-scrollbar]:w-2
   [&::-webkit-scrollbar-track]:bg-slate-950
   [&::-webkit-scrollbar-thumb]:rounded-full
   [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-800
-">
+  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
+>
       <div className="border-b border-slate-800 px-6 py-5">
         <Link to="/dashboard">
           <h1 className="text-2xl font-bold">Hirenix AI</h1>

@@ -13,8 +13,7 @@ import {
   toggleCompanyTaskApi,
   updateCompanyPrepApi,
 } from "../api/company.api";
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
+import AppLayout from "../components/AppLayout";
 
 const CompanyDetails = () => {
   const { id } = useParams();
@@ -92,17 +91,17 @@ const CompanyDetails = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
           Loading company preparation...
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
           <p>{error}</p>
 
@@ -113,7 +112,7 @@ const CompanyDetails = () => {
             Back to Companies
           </Link>
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
@@ -123,7 +122,7 @@ const CompanyDetails = () => {
     company.tasks?.filter((task) => task.isCompleted).length || 0;
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="mb-8">
         <Link
           to="/companies"
@@ -297,32 +296,10 @@ const CompanyDetails = () => {
           </div>
         </aside>
       </section>
-    </Layout>
+    </AppLayout>
   );
 };
 
-const Layout = ({ children }) => {
-  return (
-    <div className="h-screen overflow-hidden bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-        className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-        [&::-webkit-scrollbar]:w-2
-        [&::-webkit-scrollbar-track]:bg-slate-950
-        [&::-webkit-scrollbar-thumb]:rounded-full
-        [&::-webkit-scrollbar-thumb]:bg-gray-900
-        hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
-      >
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
-    </div>
-  );
-};
 
 const InfoBox = ({ label, value }) => {
   return (

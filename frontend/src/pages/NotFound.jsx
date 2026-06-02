@@ -1,33 +1,30 @@
 import { Link } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-6">
-      <section className="max-w-xl text-center">
-        <p className="text-blue-400 font-semibold mb-3">404 Error</p>
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-white">
+      <div className="max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center">
+        <div className="mx-auto mb-5 w-fit rounded-2xl bg-red-500/10 p-4 text-red-300">
+          <AlertTriangle size={36} />
+        </div>
 
-        <h1 className="text-5xl font-bold mb-5">Page Not Found</h1>
+        <h1 className="text-4xl font-bold">404</h1>
 
-        <p className="text-slate-400 mb-8">
-          The page you are looking for does not exist or may have been moved.
+        <h2 className="mt-3 text-2xl font-semibold">Page Not Found</h2>
+
+        <p className="mt-3 text-slate-400">
+          This route does not exist or is not connected yet. Go back to your
+          Hirenix AI dashboard.
         </p>
 
-        <div className="flex flex-wrap justify-center gap-4">
-          <Link
-            to="/"
-            className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700"
-          >
-            Go Home
-          </Link>
-
-          <Link
-            to="/dashboard"
-            className="rounded-xl border border-slate-700 px-6 py-3 font-semibold text-slate-300 hover:bg-slate-900"
-          >
-            Go Dashboard
-          </Link>
-        </div>
-      </section>
+        <Link
+          to="/dashboard"
+          className="mt-6 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
     </div>
   );
 };

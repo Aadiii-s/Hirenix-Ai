@@ -10,8 +10,7 @@ import {
 } from "lucide-react";
 
 import { getSkillGapAnalysisByIdApi } from "../api/skillGap.api";
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
+import AppLayout from "../components/AppLayout";
 
 const SkillGapDetails = () => {
   const { id } = useParams();
@@ -44,17 +43,17 @@ const SkillGapDetails = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
           Loading skill gap report...
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      <AppLayout>
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
           <p>{error}</p>
 
@@ -65,14 +64,14 @@ const SkillGapDetails = () => {
             Back to History
           </Link>
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   if (!analysis) return null;
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="mb-8">
         <Link
           to="/skill-gap/history"
@@ -166,11 +165,10 @@ const SkillGapDetails = () => {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold ${
-                activeTab === key
+              className={`rounded-xl px-4 py-2 text-sm font-semibold ${activeTab === key
                   ? "bg-blue-600 text-white"
                   : "bg-slate-950 text-slate-400"
-              }`}
+                }`}
             >
               {label}
             </button>
@@ -196,13 +194,12 @@ const SkillGapDetails = () => {
                     </div>
 
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
-                        item.priority === "high"
+                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${item.priority === "high"
                           ? "bg-red-500/10 text-red-300"
                           : item.priority === "medium"
-                          ? "bg-yellow-500/10 text-yellow-300"
-                          : "bg-green-500/10 text-green-300"
-                      }`}
+                            ? "bg-yellow-500/10 text-yellow-300"
+                            : "bg-green-500/10 text-green-300"
+                        }`}
                     >
                       {item.priority}
                     </span>
@@ -286,32 +283,10 @@ const SkillGapDetails = () => {
           </div>
         )}
       </section>
-    </Layout>
+    </AppLayout>
   );
 };
 
-const Layout = ({ children }) => {
-  return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
-    </div>
-  );
-};
 
 const InfoBox = ({ label, value }) => {
   return (
@@ -327,8 +302,8 @@ const SkillListCard = ({ title, icon: Icon, items = [], color }) => {
     color === "red"
       ? "text-red-300 bg-red-500/10"
       : color === "yellow"
-      ? "text-yellow-300 bg-yellow-500/10"
-      : "text-green-300 bg-green-500/10";
+        ? "text-yellow-300 bg-yellow-500/10"
+        : "text-green-300 bg-green-500/10";
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">

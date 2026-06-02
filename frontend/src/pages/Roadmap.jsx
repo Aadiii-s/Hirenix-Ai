@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Brain, Clock, Sparkles } from "lucide-react";
+import { Apple, ArrowLeft, Brain, Clock, Sparkles } from "lucide-react";
 
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
 import { generateRoadmapApi } from "../api/roadmap.api";
 import { useAuth } from "../context/AuthContext";
+import AppLayout from "../components/AppLayout";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -89,7 +88,7 @@ const Roadmap = () => {
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "Failed to generate roadmap. Please try again."
+        "Failed to generate roadmap. Please try again."
       );
     } finally {
       setLoading(false);
@@ -97,21 +96,7 @@ const Roadmap = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
+    <AppLayout>
         <div className="mx-auto max-w-5xl">
           <div className="mb-8">
             <Link
@@ -339,8 +324,7 @@ const Roadmap = () => {
             </aside>
           </section>
         </div>
-      </main>
-    </div>
+      </AppLayout>
   );
 };
 

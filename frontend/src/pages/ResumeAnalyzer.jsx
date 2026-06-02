@@ -8,10 +8,9 @@ import {
   WandSparkles,
 } from "lucide-react";
 
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
 import { analyzeResumeApi } from "../api/resume.api";
 import { useAuth } from "../context/AuthContext";
+import AppLayout from "../components/AppLayout";
 
 const ResumeAnalyzer = () => {
   const { user } = useAuth();
@@ -69,7 +68,7 @@ const ResumeAnalyzer = () => {
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "Resume analysis failed. Please try again."
+        "Resume analysis failed. Please try again."
       );
     } finally {
       setLoading(false);
@@ -77,21 +76,7 @@ const ResumeAnalyzer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
+    <AppLayout>
         <div className="mx-auto max-w-5xl">
           <div className="mb-8">
             <Link
@@ -244,8 +229,7 @@ const ResumeAnalyzer = () => {
             </aside>
           </section>
         </div>
-      </main>
-    </div>
+      </AppLayout>
   );
 };
 

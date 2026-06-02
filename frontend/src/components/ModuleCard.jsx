@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Lock } from "lucide-react";
 
 const ModuleCard = ({
   title,
@@ -6,7 +7,7 @@ const ModuleCard = ({
   icon: Icon,
   status,
   buttonText = "Start Module",
-  locked = true,
+  locked = false,
   path = "#",
 }) => {
   return (
@@ -29,13 +30,16 @@ const ModuleCard = ({
 
       <h3 className="text-lg font-semibold text-white">{title}</h3>
 
-      <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
+      <p className="mt-2 min-h-12 text-sm leading-6 text-slate-400">
+        {description}
+      </p>
 
       {locked ? (
         <button
           disabled
-          className="mt-5 cursor-not-allowed rounded-xl border border-slate-800 px-4 py-2 text-sm text-slate-500"
+          className="mt-5 inline-flex cursor-not-allowed items-center gap-2 rounded-xl border border-slate-800 px-4 py-2 text-sm text-slate-500"
         >
+          <Lock size={16} />
           Locked
         </button>
       ) : (

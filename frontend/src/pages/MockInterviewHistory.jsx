@@ -6,8 +6,7 @@ import {
   deleteMockInterviewApi,
   getMyMockInterviewsApi,
 } from "../api/interview.api";
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
+import AppLayout from "../components/AppLayout";
 
 const MockInterviewHistory = () => {
   const [interviews, setInterviews] = useState([]);
@@ -63,21 +62,7 @@ const MockInterviewHistory = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
+    <AppLayout>
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -172,11 +157,10 @@ const MockInterviewHistory = () => {
                     </div>
 
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${
-                        interview.status === "completed"
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${interview.status === "completed"
                           ? "bg-green-500/10 text-green-300"
                           : "bg-blue-500/10 text-blue-300"
-                      }`}
+                        }`}
                     >
                       {interview.status.replace("_", " ")}
                     </span>
@@ -235,8 +219,7 @@ const MockInterviewHistory = () => {
             </section>
           )}
         </div>
-      </main>
-    </div>
+      </AppLayout>
   );
 };
 

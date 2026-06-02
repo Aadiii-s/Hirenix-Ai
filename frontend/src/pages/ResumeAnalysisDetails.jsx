@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
+    Apple,
     ArrowLeft,
     CheckCircle2,
     FileText,
@@ -8,10 +9,8 @@ import {
     Target,
     XCircle,
 } from "lucide-react";
-
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
 import { getResumeAnalysisByIdApi } from "../api/resume.api";
+import AppLayout from "../components/AppLayout";
 
 const ResumeAnalysisDetails = () => {
     const { id } = useParams();
@@ -49,63 +48,38 @@ const ResumeAnalysisDetails = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 text-white lg:flex">
-                <Sidebar />
-
-                <div className="lg:hidden">
-                    <MobileHeader />
-                </div>
+            <AppLayout>
 
                 <main className="flex-1 px-6 py-6 lg:px-8">
                     <div className="mx-auto max-w-7xl rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
                         Loading resume analysis...
                     </div>
                 </main>
-            </div>
+            </AppLayout>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen bg-slate-950 text-white lg:flex">
-                <Sidebar />
+            <AppLayout>
+                <div className="mx-auto max-w-7xl rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
+                    <p>{error}</p>
 
-                <div className="lg:hidden">
-                    <MobileHeader />
+                    <Link
+                        to="/resume-analyses"
+                        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+                    >
+                        Back to Resume History
+                    </Link>
                 </div>
-
-                <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
-                    <div className="mx-auto max-w-7xl rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
-                        <p>{error}</p>
-
-                        <Link
-                            to="/resume-analyses"
-                            className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-                        >
-                            Back to Resume History
-                        </Link>
-                    </div>
-                </main>
-            </div>
+            </AppLayout>
         );
     }
 
     if (!analysis) return null;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white lg:flex">
-            <Sidebar />
-
-            <div className="lg:hidden">
-                <MobileHeader />
-            </div>
+        <AppLayout>
 
             <main className="flex-1 px-6 py-6 lg:px-8">
                 <div className="mx-auto max-w-7xl">
@@ -214,8 +188,8 @@ const ResumeAnalysisDetails = () => {
                                     key={key}
                                     onClick={() => setActiveTab(key)}
                                     className={`rounded-xl px-4 py-2 text-sm font-semibold, cursor-pointer ${activeTab === key
-                                            ? "bg-blue-600 text-white"
-                                            : "bg-slate-950 text-slate-400"
+                                        ? "bg-blue-600 text-white"
+                                        : "bg-slate-950 text-slate-400"
                                         }`}
                                 >
                                     {label}
@@ -328,7 +302,7 @@ const ResumeAnalysisDetails = () => {
                     </section>
                 </div>
             </main>
-        </div>
+        </AppLayout>
     );
 };
 

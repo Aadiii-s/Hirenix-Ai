@@ -12,9 +12,8 @@ import {
   generateSkillGapAnalysisApi,
   getLatestSkillGapAnalysisApi,
 } from "../api/skillGap.api";
-import MobileHeader from "../components/MobileHeader";
-import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
+import AppLayout from "../components/AppLayout";
 
 const SkillGapAnalyzer = () => {
   const { user } = useAuth();
@@ -68,7 +67,7 @@ const SkillGapAnalyzer = () => {
     } catch (error) {
       setError(
         error.response?.data?.message ||
-          "Failed to generate skill gap analysis"
+        "Failed to generate skill gap analysis"
       );
     } finally {
       setGenerating(false);
@@ -76,21 +75,7 @@ const SkillGapAnalyzer = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white lg:flex">
-      <Sidebar />
-
-      <div className="lg:hidden">
-        <MobileHeader />
-      </div>
-
-      <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:bg-slate-950
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-900
-  hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
+    <AppLayout>
         <div className="mx-auto max-w-6xl">
           <div className="mb-8">
             <Link
@@ -245,8 +230,7 @@ const SkillGapAnalyzer = () => {
             </aside>
           </section>
         </div>
-      </main>
-    </div>
+      </AppLayout>
   );
 };
 
