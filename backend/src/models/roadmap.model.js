@@ -90,16 +90,16 @@ const roadmapSchema = new mongoose.Schema(
       default: [],
     },
     completedDays: {
-  type: [Number],
-  default: [],
-},
+      type: [Number],
+      default: [],
+    },
 
-progressPercentage: {
-  type: Number,
-  default: 0,
-  min: 0,
-  max: 100,
-},
+    progressPercentage: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
 
     status: {
       type: String,

@@ -282,11 +282,11 @@ export const getPlacementReadinessScore = asyncHandler(async (req, res) => {
                 solvedQuestions: solvedDsaQuestions,
             },
             interview: {
-      score: interviewScore,
-      weight: 20,
-      contribution: Math.round(interviewScore * 0.2),
-      completedInterviews: totalCompletedInterviews,
-    },
+                score: interviewScore,
+                weight: 20,
+                contribution: Math.round(interviewScore * 0.2),
+                completedInterviews: totalCompletedInterviews,
+            },
             consistency: {
                 score: consistencyScore,
                 weight: 10,
