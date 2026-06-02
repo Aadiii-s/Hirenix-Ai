@@ -22,6 +22,8 @@ import MockInterviewSession from "./pages/MockInterviewSession";
 import SkillGapAnalyzer from "./pages/SkillGapAnalyzer";
 import SkillGapDetails from "./pages/SkillGapDetails";
 import SkillGapHistory from "./pages/SkillGapHistory";
+import CompanyTracker from "./pages/CompanyTracker";
+import CompanyDetails from "./pages/CompanyDetails";
 
 function App() {
   return (
@@ -177,6 +179,24 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/companies"
+        element={
+          <ProtectedRoute>
+            <CompanyTracker />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/companies/:id"
+        element={
+          <ProtectedRoute>
+            <CompanyDetails />
+          </ProtectedRoute>
+        }
+      />
+
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

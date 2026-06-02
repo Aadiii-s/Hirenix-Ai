@@ -10,6 +10,7 @@ import {
   Route,
   User,
   BrainCircuit,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -83,6 +84,12 @@ const Sidebar = () => {
       icon: BrainCircuit,
       disabled: false,
     },
+    {
+  label: "Companies",
+  path: "/companies",
+  icon: Building2,
+  disabled: false,
+},
     {
       label: "Analytics",
       path: "/analytics",

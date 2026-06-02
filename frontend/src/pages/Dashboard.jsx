@@ -10,6 +10,7 @@ import {
   Target,
   Trophy,
   User,
+  Building2,
 } from "lucide-react";
 
 import { getDsaStatsApi } from "../api/dsa.api";
@@ -42,7 +43,7 @@ const Dashboard = () => {
   const [interviewStats, setInterviewStats] = useState(null);
   const [interviewLoading, setInterviewLoading] = useState(true);
 
-  const [latestSkillGap , setLatestSkillGap] = useState(null);
+  const [latestSkillGap, setLatestSkillGap] = useState(null);
   const [skillGapLoading, setSkillGapLoading] = useState(true);
 
 
@@ -145,17 +146,17 @@ const Dashboard = () => {
     }
   };
 
-  const fetchLatestSkillGap = async () =>{
-    try{
+  const fetchLatestSkillGap = async () => {
+    try {
       setSkillGapLoading(true);
 
       const response = await getLatestSkillGapAnalysisApi();
 
       setLatestSkillGap(null);
-    }catch (error){
+    } catch (error) {
       console.log("Latest skill gap error:", error.response?.data || error);
       setLatestSkillGap(null);
-    }finally{
+    } finally {
       setSkillGapLoading(false);
     }
   }
@@ -197,6 +198,15 @@ const Dashboard = () => {
       locked: false,
     },
     {
+  title: "Company Tracker",
+  description:
+    "Track company-wise preparation, application status, tasks, and progress.",
+  icon: Building2,
+  status: "Ready",
+  path: "/companies",
+  locked: false,
+},
+    {
       title: "Mock Interview",
       description:
         "Practice HR, MERN, DSA, and project interviews with AI feedback.",
@@ -234,13 +244,13 @@ const Dashboard = () => {
       </div>
 
       <main
-  className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
+        className="h-screen flex-1 overflow-y-auto px-6 py-6 lg:px-8
   [&::-webkit-scrollbar]:w-2
   [&::-webkit-scrollbar-track]:bg-slate-950
   [&::-webkit-scrollbar-thumb]:rounded-full
   [&::-webkit-scrollbar-thumb]:bg-gray-900
   hover:[&::-webkit-scrollbar-thumb]:bg-gray-700"
->
+      >
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
@@ -570,86 +580,86 @@ const Dashboard = () => {
                 )}
               </div>
               <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-  <div className="mb-5 flex items-center gap-3">
-    <div className="rounded-xl bg-purple-500/10 p-3 text-purple-300">
-      <Brain size={22} />
-    </div>
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="rounded-xl bg-purple-500/10 p-3 text-purple-300">
+                    <Brain size={22} />
+                  </div>
 
-    <div>
-      <h2 className="text-xl font-semibold">Skill Gap Focus</h2>
-      <p className="text-sm text-slate-400">Your latest missing skills</p>
-    </div>
-  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold">Skill Gap Focus</h2>
+                    <p className="text-sm text-slate-400">Your latest missing skills</p>
+                  </div>
+                </div>
 
-  {skillGapLoading ? (
-    <p className="text-sm text-slate-400">Loading skill gap analysis...</p>
-  ) : latestSkillGap ? (
-    <>
-      <p className="text-sm leading-6 text-slate-300">
-        {latestSkillGap.summary || "Latest skill gap report is ready."}
-      </p>
+                {skillGapLoading ? (
+                  <p className="text-sm text-slate-400">Loading skill gap analysis...</p>
+                ) : latestSkillGap ? (
+                  <>
+                    <p className="text-sm leading-6 text-slate-300">
+                      {latestSkillGap.summary || "Latest skill gap report is ready."}
+                    </p>
 
-      {latestSkillGap.topThreeFocusAreas?.length > 0 && (
-        <div className="mt-4">
-          <p className="mb-2 text-sm font-semibold text-slate-300">
-            Focus This Week
-          </p>
+                    {latestSkillGap.topThreeFocusAreas?.length > 0 && (
+                      <div className="mt-4">
+                        <p className="mb-2 text-sm font-semibold text-slate-300">
+                          Focus This Week
+                        </p>
 
-          <div className="flex flex-wrap gap-2">
-            {latestSkillGap.topThreeFocusAreas.map((focus) => (
-              <span
-                key={focus}
-                className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-300"
-              >
-                {focus}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+                        <div className="flex flex-wrap gap-2">
+                          {latestSkillGap.topThreeFocusAreas.map((focus) => (
+                            <span
+                              key={focus}
+                              className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-300"
+                            >
+                              {focus}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-      {latestSkillGap.missingSkills?.length > 0 && (
-        <div className="mt-4">
-          <p className="mb-2 text-sm font-semibold text-slate-300">
-            Missing Skills
-          </p>
+                    {latestSkillGap.missingSkills?.length > 0 && (
+                      <div className="mt-4">
+                        <p className="mb-2 text-sm font-semibold text-slate-300">
+                          Missing Skills
+                        </p>
 
-          <div className="flex flex-wrap gap-2">
-            {latestSkillGap.missingSkills.slice(0, 4).map((skill) => (
-              <span
-                key={skill}
-                className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-300"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+                        <div className="flex flex-wrap gap-2">
+                          {latestSkillGap.missingSkills.slice(0, 4).map((skill) => (
+                            <span
+                              key={skill}
+                              className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-300"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-      <Link
-        to={`/skill-gap/${latestSkillGap._id}`}
-        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
-      >
-        View Skill Gap Report
-      </Link>
-    </>
-  ) : (
-    <>
-      <p className="text-sm leading-6 text-slate-300">
-        Generate a skill gap analysis to know your missing skills and weekly
-        focus areas.
-      </p>
+                    <Link
+                      to={`/skill-gap/${latestSkillGap._id}`}
+                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                    >
+                      View Skill Gap Report
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm leading-6 text-slate-300">
+                      Generate a skill gap analysis to know your missing skills and weekly
+                      focus areas.
+                    </p>
 
-      <Link
-        to="/skill-gap"
-        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
-      >
-        Generate Skill Gap
-      </Link>
-    </>
-  )}
-</div>
+                    <Link
+                      to="/skill-gap"
+                      className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+                    >
+                      Generate Skill Gap
+                    </Link>
+                  </>
+                )}
+              </div>
 
               <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
                 <div className="mb-5 flex items-center gap-3">
