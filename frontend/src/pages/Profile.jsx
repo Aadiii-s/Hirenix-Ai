@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   Building2,
   GraduationCap,
   Mail,
@@ -10,6 +9,8 @@ import {
 
 import AppLayout from "../components/AppLayout";
 import EmptyState from "../components/EmptyState";
+import PageHeader from "../components/PageHeader";
+import SectionCard from "../components/SectionCard";
 import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
@@ -31,49 +32,32 @@ const Profile = () => {
 
   return (
     <AppLayout maxWidth="max-w-5xl">
-      <div className="mb-8">
-        <Link
-          to="/dashboard"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-        >
-          <ArrowLeft size={16} />
-          Back to dashboard
-        </Link>
+      <PageHeader
+        eyebrow="Your Profile"
+        title={user.fullName || "User"}
+        description="Your profile is used by Hirenix AI to personalize roadmap, resume analysis, mock interviews, skill gap analysis, and readiness score."
+        icon={User}
+        backPath="/dashboard"
+        backLabel="Back to dashboard"
+      />
 
-        <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-blue-500/10 p-4 text-blue-300">
-            <User size={30} />
-          </div>
-
-          <div>
-            <p className="font-medium text-blue-400">Your Profile</p>
-            <h1 className="text-4xl font-bold">{user.fullName || "User"}</h1>
-          </div>
-        </div>
-
-        <p className="mt-4 max-w-3xl text-slate-400">
-          Your profile is used by Hirenix AI to personalize roadmap, resume
-          analysis, mock interviews, skill gap analysis, and readiness score.
-        </p>
-      </div>
-
-      <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-sm text-slate-400">Profile Completion</p>
-            <h2 className="mt-2 text-3xl font-bold">
-              {user.isProfileCompleted ? "Completed" : "Incomplete"}
-            </h2>
-          </div>
-
+      <SectionCard
+        className="mb-6"
+        title="Profile Completion"
+        description="Complete your profile to improve AI personalization."
+        action={
           <Link
             to="/edit-profile"
             className="rounded-xl bg-blue-600 px-5 py-3 text-center font-semibold hover:bg-blue-700"
           >
             Edit Profile
           </Link>
-        </div>
-      </section>
+        }
+      >
+        <h2 className="text-3xl font-bold">
+          {user.isProfileCompleted ? "Completed" : "Incomplete"}
+        </h2>
+      </SectionCard>
 
       <section className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <ProfileCard
@@ -100,10 +84,7 @@ const Profile = () => {
           title="Career Goal"
           items={[
             ["Target Role", user.targetRole || "Not added"],
-            [
-              "Preparation Level",
-              user.currentPreparationLevel || "beginner",
-            ],
+            ["Preparation Level", user.currentPreparationLevel || "beginner"],
           ]}
         />
 
@@ -121,20 +102,12 @@ const Profile = () => {
         />
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <div className="mb-4 flex items-center gap-3">
-          <div className="rounded-xl bg-purple-500/10 p-3 text-purple-300">
-            <Mail size={22} />
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold">Skills</h2>
-            <p className="text-sm text-slate-400">
-              Skills used for AI personalization
-            </p>
-          </div>
-        </div>
-
+      <SectionCard
+        className="mt-6"
+        title="Skills"
+        description="Skills used for AI personalization."
+        icon={Mail}
+      >
         {user.skills?.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {user.skills.map((skill) => (
@@ -149,22 +122,14 @@ const Profile = () => {
         ) : (
           <p className="text-sm text-slate-400">No skills added yet.</p>
         )}
-      </section>
+      </SectionCard>
     </AppLayout>
   );
 };
 
 const ProfileCard = ({ icon: Icon, title, items }) => {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
-          <Icon size={22} />
-        </div>
-
-        <h2 className="text-xl font-semibold">{title}</h2>
-      </div>
-
+    <SectionCard title={title} icon={Icon}>
       <div className="space-y-4">
         {items.map(([label, value]) => (
           <div key={label}>
@@ -175,7 +140,7 @@ const ProfileCard = ({ icon: Icon, title, items }) => {
           </div>
         ))}
       </div>
-    </div>
+    </SectionCard>
   );
 };
 

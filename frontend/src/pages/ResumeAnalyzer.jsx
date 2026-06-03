@@ -4,8 +4,8 @@ import { FileText, History, Sparkles, Upload } from "lucide-react";
 
 import { analyzeResumeApi } from "../api/resume.api";
 import AppLayout from "../components/AppLayout";
-import SectionCard from "../components/SectionCard";
 import PageHeader from "../components/PageHeader";
+import SectionCard from "../components/SectionCard";
 
 const ResumeAnalyzer = () => {
   const navigate = useNavigate();
@@ -82,19 +82,6 @@ const ResumeAnalyzer = () => {
             description="PDF format is required for analysis."
             icon={Upload}
           >
-            <div className="mb-6 flex items-center gap-3">
-              <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
-                <Upload size={22} />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold">Upload Resume</h2>
-                <p className="text-sm text-slate-400">
-                  PDF format is required for analysis.
-                </p>
-              </div>
-            </div>
-
             <div className="space-y-5">
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-950 px-6 py-10 text-center hover:border-blue-500/60">
                 <Upload className="mb-4 text-blue-300" size={36} />
@@ -156,17 +143,15 @@ const ResumeAnalyzer = () => {
             </p>
           </Link>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="text-xl font-semibold">What AI checks</h2>
-
-            <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-400">
+          <SectionCard title="What AI checks">
+            <ul className="space-y-3 text-sm leading-6 text-slate-400">
               <li>ATS score and keyword match.</li>
               <li>Missing role-specific skills.</li>
               <li>Project impact and measurable achievements.</li>
               <li>Weak bullet points and improved versions.</li>
               <li>Final resume improvement advice.</li>
             </ul>
-          </div>
+          </SectionCard>
         </aside>
       </section>
     </AppLayout>
