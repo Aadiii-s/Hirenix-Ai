@@ -16,6 +16,8 @@ import {
 
 import { getAnalyticsOverviewApi } from "../api/analytics.api";
 import AppLayout from "../components/AppLayout";
+import LoadingState from "../components/LoadingState";
+import ErrorState from "../components/ErrorState";
 
 const AnalyticsDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -46,9 +48,10 @@ const AnalyticsDashboard = () => {
   if (loading) {
     return (
       <AppLayout>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center text-slate-400">
-          Loading analytics overview...
-        </div>
+        <LoadingState
+          title="Loading analytics overview"
+          message="Please wait while we prepare your complete preparation insights."
+        />
       </AppLayout>
     );
   }
@@ -56,16 +59,12 @@ const AnalyticsDashboard = () => {
   if (error) {
     return (
       <AppLayout>
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
-          <p>{error}</p>
-
-          <button
-            onClick={fetchAnalytics}
-            className="mt-5 rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-          >
-            Retry
-          </button>
-        </div>
+        <ErrorState
+          title="Analytics loading failed"
+          message={error}
+          buttonText="Retry"
+          onRetry={fetchAnalytics}
+        />
       </AppLayout>
     );
   }

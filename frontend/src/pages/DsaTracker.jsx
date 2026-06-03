@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   BookOpen,
   CheckCircle2,
+  Edit,
   Filter,
   Plus,
   Search,
@@ -14,22 +15,21 @@ import {
   deleteDsaQuestionApi,
   getDsaQuestionsApi,
   getDsaStatsApi,
-  updateDsaQuestionStatusApi,
+  updateDsaQuestionApi,
 } from "../api/dsa.api";
+
 import AppLayout from "../components/AppLayout";
+import EmptyState from "../components/EmptyState";
+import LoadingState from "../components/LoadingState";
 
 const initialFormData = {
   title: "",
-  platform: "leetcode",
-  questionUrl: "",
+  platform: "LeetCode",
+  problemUrl: "",
   topic: "",
-  difficulty: "easy",
-  status: "not_started",
+  difficulty: "medium",
+  status: "unsolved",
   notes: "",
-  approach: "",
-  timeComplexity: "",
-  spaceComplexity: "",
-  tags: "",
 };
 
 const DsaTracker = () => {
@@ -37,25 +37,25 @@ const DsaTracker = () => {
   const [stats, setStats] = useState(null);
 
   const [formData, setFormData] = useState(initialFormData);
-  const [showForm, setShowForm] = useState(false);
+  const [editingQuestionId, setEditingQuestionId] = useState("");
 
   const [filters, setFilters] = useState({
     search: "",
     topic: "",
     difficulty: "",
     status: "",
-    platform: "",
   });
 
+  const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [updatingId, setUpdatingId] = useState("");
+  const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState("");
   const [error, setError] = useState("");
 
   const fetchQuestions = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const activeFilters = Object.fromEntries(
         Object.entries(filters).filter(([, value]) => value)
@@ -65,7 +65,7 @@ const DsaTracker = () => {
 
       setQuestions(response.data);
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to fetch questions");
+      setError(error.response?.data?.message || "Failed to fetch DSA questions");
     } finally {
       setLoading(false);
     }
@@ -109,74 +109,77 @@ const DsaTracker = () => {
     });
   };
 
+  const resetForm = () => {
+    setFormData(initialFormData);
+    setEditingQuestionId("");
+    setShowForm(false);
+  };
+
   const resetFilters = () => {
     setFilters({
       search: "",
       topic: "",
       difficulty: "",
       status: "",
-      platform: "",
     });
   };
 
-  const convertTagsToArray = (value) => {
-    return value
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-  };
-
-  const handleCreateQuestion = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.topic || !formData.difficulty) {
-      setError("Title, topic, and difficulty are required");
+    if (!formData.title.trim()) {
+      setError("Question title is required");
       return;
     }
 
-    const payload = {
-      ...formData,
-      tags: convertTagsToArray(formData.tags),
-    };
+    if (!formData.topic.trim()) {
+      setError("Topic is required");
+      return;
+    }
 
     try {
-      setCreating(true);
+      setSaving(true);
+      setError("");
 
-      await createDsaQuestionApi(payload);
+      if (editingQuestionId) {
+        await updateDsaQuestionApi(editingQuestionId, formData);
+      } else {
+        await createDsaQuestionApi(formData);
+      }
 
-      setFormData(initialFormData);
-      setShowForm(false);
+      resetForm();
 
       await fetchQuestions();
       await fetchStats();
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to add question");
+      setError(error.response?.data?.message || "Failed to save DSA question");
     } finally {
-      setCreating(false);
+      setSaving(false);
     }
   };
 
-  const handleStatusChange = async (questionId, status) => {
-    try {
-      setUpdatingId(questionId);
+  const handleEdit = (question) => {
+    setEditingQuestionId(question._id);
 
-      await updateDsaQuestionStatusApi(questionId, status);
+    setFormData({
+      title: question.title || "",
+      platform: question.platform || "LeetCode",
+      problemUrl: question.problemUrl || "",
+      topic: question.topic || "",
+      difficulty: question.difficulty || "medium",
+      status: question.status || "unsolved",
+      notes: question.notes || "",
+    });
 
-      await fetchQuestions();
-      await fetchStats();
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to update status");
-    } finally {
-      setUpdatingId("");
-    }
+    setShowForm(true);
   };
 
   const handleDelete = async (questionId) => {
-    const confirmDelete = window.confirm(
+    const confirmed = window.confirm(
       "Are you sure you want to delete this DSA question?"
     );
 
-    if (!confirmDelete) return;
+    if (!confirmed) return;
 
     try {
       setDeletingId(questionId);
@@ -210,390 +213,326 @@ const DsaTracker = () => {
 
   return (
     <AppLayout>
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-blue-400 font-medium">DSA Tracker</p>
-              <h1 className="mt-2 text-4xl font-bold">Track DSA Preparation</h1>
-              <p className="mt-2 text-slate-400">
-                Add questions, track status, revise weak topics, and monitor
-                your placement coding progress.
-              </p>
-            </div>
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="font-medium text-blue-400">DSA Tracker</p>
+          <h1 className="mt-2 text-4xl font-bold">Track Your Coding Practice</h1>
+          <p className="mt-2 text-slate-400">
+            Add DSA questions, track topic-wise progress, difficulty, notes, and
+            revision status.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowForm(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+        >
+          <Plus size={18} />
+          Add Question
+        </button>
+      </div>
+
+      <section className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <StatsCard
+          title="Total Questions"
+          value={stats?.totalQuestions || 0}
+          subtitle="Tracked problems"
+        />
+
+        <StatsCard
+          title="Solved"
+          value={stats?.solvedQuestions || 0}
+          subtitle="Completed problems"
+        />
+
+        <StatsCard
+          title="In Progress"
+          value={stats?.inProgressQuestions || 0}
+          subtitle="Currently solving"
+        />
+
+        <StatsCard
+          title="Completion"
+          value={`${stats?.completionPercentage || 0}%`}
+          subtitle="Overall progress"
+        />
+      </section>
+
+      <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Filter size={18} className="text-blue-300" />
+          <h2 className="text-lg font-semibold">Search & Filters</h2>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+          <div className="relative md:col-span-2">
+            <Search
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+            />
+
+            <input
+              type="text"
+              name="search"
+              value={filters.search}
+              onChange={handleFilterChange}
+              placeholder="Search question, topic, platform..."
+              className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-4 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <input
+            type="text"
+            name="topic"
+            value={filters.topic}
+            onChange={handleFilterChange}
+            placeholder="Topic"
+            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
+          />
+
+          <select
+            name="difficulty"
+            value={filters.difficulty}
+            onChange={handleFilterChange}
+            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
+          >
+            <option value="">All Difficulty</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <select
+            name="status"
+            value={filters.status}
+            onChange={handleFilterChange}
+            className="rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
+          >
+            <option value="">All Status</option>
+            <option value="unsolved">Unsolved</option>
+            <option value="in_progress">In Progress</option>
+            <option value="solved">Solved</option>
+            <option value="revision">Revision</option>
+          </select>
+        </div>
+
+        <button
+          onClick={resetFilters}
+          className="mt-4 rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
+        >
+          Clear Filters
+        </button>
+      </section>
+
+      {error && (
+        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
+
+      {showForm && (
+        <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="text-xl font-semibold">
+              {editingQuestionId ? "Edit Question" : "Add DSA Question"}
+            </h2>
 
             <button
-              onClick={() => setShowForm(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+              onClick={resetForm}
+              className="rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700"
             >
-              <Plus size={18} />
-              Add Question
+              <X size={18} />
             </button>
           </div>
 
-          <section className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <StatsCard
-              title="Total Questions"
-              value={stats?.totalQuestions || 0}
-              subtitle="Tracked questions"
-            />
-
-            <StatsCard
-              title="Solved"
-              value={stats?.solvedQuestions || 0}
-              subtitle={`${stats?.completionPercentage || 0}% completion`}
-            />
-
-            <StatsCard
-              title="In Progress"
-              value={stats?.inProgressQuestions || 0}
-              subtitle="Currently solving"
-            />
-
-            <StatsCard
-              title="Revision"
-              value={stats?.revisionQuestions || 0}
-              subtitle="Need revision"
-            />
-          </section>
-
-          <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Filter size={18} className="text-blue-300" />
-              <h2 className="text-lg font-semibold">Search & Filters</h2>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
-              <div className="relative md:col-span-2">
-                <Search
-                  size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
-                />
-
-                <input
-                  type="text"
-                  name="search"
-                  value={filters.search}
-                  onChange={handleFilterChange}
-                  placeholder="Search title, topic, notes..."
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 py-3 pl-11 pr-4 outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <input
-                type="text"
-                name="topic"
-                value={filters.topic}
-                onChange={handleFilterChange}
-                placeholder="Topic"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <Input
+                label="Question Title"
+                name="title"
+                value={formData.title}
+                onChange={handleFormChange}
+                placeholder="Two Sum"
               />
 
-              <select
-                name="difficulty"
-                value={filters.difficulty}
-                onChange={handleFilterChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
-              >
-                <option value="">All Difficulty</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-
-              <select
-                name="status"
-                value={filters.status}
-                onChange={handleFilterChange}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 outline-none focus:border-blue-500"
-              >
-                <option value="">All Status</option>
-                <option value="not_started">Not Started</option>
-                <option value="in_progress">In Progress</option>
-                <option value="solved">Solved</option>
-                <option value="revision">Revision</option>
-              </select>
+              <Input
+                label="Platform"
+                name="platform"
+                value={formData.platform}
+                onChange={handleFormChange}
+                placeholder="LeetCode"
+              />
             </div>
+
+            <Input
+              label="Problem URL"
+              name="problemUrl"
+              value={formData.problemUrl}
+              onChange={handleFormChange}
+              placeholder="https://leetcode.com/problems/two-sum"
+            />
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+              <Input
+                label="Topic"
+                name="topic"
+                value={formData.topic}
+                onChange={handleFormChange}
+                placeholder="Array"
+              />
+
+              <Select
+                label="Difficulty"
+                name="difficulty"
+                value={formData.difficulty}
+                onChange={handleFormChange}
+                options={[
+                  ["easy", "Easy"],
+                  ["medium", "Medium"],
+                  ["hard", "Hard"],
+                ]}
+              />
+
+              <Select
+                label="Status"
+                name="status"
+                value={formData.status}
+                onChange={handleFormChange}
+                options={[
+                  ["unsolved", "Unsolved"],
+                  ["in_progress", "In Progress"],
+                  ["solved", "Solved"],
+                  ["revision", "Revision"],
+                ]}
+              />
+            </div>
+
+            <Textarea
+              label="Notes"
+              name="notes"
+              value={formData.notes}
+              onChange={handleFormChange}
+              placeholder="Approach, mistakes, edge cases..."
+            />
 
             <button
-              onClick={resetFilters}
-              className="mt-4 rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
+              disabled={saving}
+              className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Clear Filters
+              {saving
+                ? "Saving..."
+                : editingQuestionId
+                ? "Update Question"
+                : "Add Question"}
             </button>
-          </section>
+          </form>
+        </section>
+      )}
 
-          {error && (
-            <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-              {error}
-            </div>
-          )}
-
-          {showForm && (
-            <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-              <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Add DSA Question</h2>
-
-                <button
-                  onClick={() => setShowForm(false)}
-                  className="rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateQuestion} className="space-y-5">
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <Input
-                    label="Question Title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleFormChange}
-                    placeholder="Two Sum"
-                  />
-
-                  <Input
-                    label="Topic"
-                    name="topic"
-                    value={formData.topic}
-                    onChange={handleFormChange}
-                    placeholder="Arrays"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                  <Select
-                    label="Platform"
-                    name="platform"
-                    value={formData.platform}
-                    onChange={handleFormChange}
-                    options={[
-                      ["leetcode", "LeetCode"],
-                      ["gfg", "GFG"],
-                      ["codeforces", "Codeforces"],
-                      ["codingninjas", "Coding Ninjas"],
-                      ["other", "Other"],
-                    ]}
-                  />
-
-                  <Select
-                    label="Difficulty"
-                    name="difficulty"
-                    value={formData.difficulty}
-                    onChange={handleFormChange}
-                    options={[
-                      ["easy", "Easy"],
-                      ["medium", "Medium"],
-                      ["hard", "Hard"],
-                    ]}
-                  />
-
-                  <Select
-                    label="Status"
-                    name="status"
-                    value={formData.status}
-                    onChange={handleFormChange}
-                    options={[
-                      ["not_started", "Not Started"],
-                      ["in_progress", "In Progress"],
-                      ["solved", "Solved"],
-                      ["revision", "Revision"],
-                    ]}
-                  />
-                </div>
-
-                <Input
-                  label="Question URL"
-                  name="questionUrl"
-                  value={formData.questionUrl}
-                  onChange={handleFormChange}
-                  placeholder="https://leetcode.com/problems/two-sum/"
-                />
-
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <Input
-                    label="Time Complexity"
-                    name="timeComplexity"
-                    value={formData.timeComplexity}
-                    onChange={handleFormChange}
-                    placeholder="O(n)"
-                  />
-
-                  <Input
-                    label="Space Complexity"
-                    name="spaceComplexity"
-                    value={formData.spaceComplexity}
-                    onChange={handleFormChange}
-                    placeholder="O(n)"
-                  />
-                </div>
-
-                <Textarea
-                  label="Approach"
-                  name="approach"
-                  value={formData.approach}
-                  onChange={handleFormChange}
-                  placeholder="Explain your approach..."
-                />
-
-                <Textarea
-                  label="Notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleFormChange}
-                  placeholder="Important edge cases, mistakes, revision notes..."
-                />
-
-                <Input
-                  label="Tags"
-                  name="tags"
-                  value={formData.tags}
-                  onChange={handleFormChange}
-                  placeholder="hashmap, array, two-pointer"
-                />
-
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {creating ? "Adding Question..." : "Add Question"}
-                </button>
-              </form>
-            </section>
-          )}
-
-          <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Question List</h2>
-              <p className="text-sm text-slate-400">
-                {questions.length} question{questions.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="rounded-xl bg-slate-950 p-8 text-center text-slate-400">
-                Loading questions...
-              </div>
-            ) : questions.length === 0 ? (
-              <div className="rounded-xl bg-slate-950 p-10 text-center">
-                <BookOpen className="mx-auto mb-4 text-blue-300" size={40} />
-
-                <h3 className="text-2xl font-bold">No questions yet</h3>
-                <p className="mt-2 text-slate-400">
-                  Add your first DSA question to start tracking.
-                </p>
-
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="mt-6 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
-                >
-                  Add First Question
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {questions.map((question) => (
-                  <div
-                    key={question._id}
-                    className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
-                  >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="min-w-0">
-                        <h3 className="text-xl font-semibold">
-                          {question.title}
-                        </h3>
-
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                            {question.topic}
-                          </span>
-
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs capitalize ${getDifficultyClass(
-                              question.difficulty
-                            )}`}
-                          >
-                            {question.difficulty}
-                          </span>
-
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs capitalize ${getStatusClass(
-                              question.status
-                            )}`}
-                          >
-                            {question.status.replace("_", " ")}
-                          </span>
-
-                          <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-400 capitalize">
-                            {question.platform}
-                          </span>
-                        </div>
-
-                        {question.questionUrl && (
-                          <a
-                            href={question.questionUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-3 inline-block text-sm text-blue-400 hover:text-blue-300"
-                          >
-                            Open question
-                          </a>
-                        )}
-
-                        {question.notes && (
-                          <p className="mt-3 text-sm text-slate-400">
-                            {question.notes}
-                          </p>
-                        )}
-
-                        {(question.timeComplexity ||
-                          question.spaceComplexity) && (
-                          <p className="mt-3 text-sm text-slate-500">
-                            Time: {question.timeComplexity || "N/A"} | Space:{" "}
-                            {question.spaceComplexity || "N/A"}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col gap-3 lg:min-w-56">
-                        <select
-                          value={question.status}
-                          disabled={updatingId === question._id}
-                          onChange={(e) =>
-                            handleStatusChange(question._id, e.target.value)
-                          }
-                          className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm outline-none focus:border-blue-500"
-                        >
-                          <option value="not_started">Not Started</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="solved">Solved</option>
-                          <option value="revision">Revision</option>
-                        </select>
-
-                        <button
-                          onClick={() => handleDelete(question._id)}
-                          disabled={deletingId === question._id}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-60"
-                        >
-                          <Trash2 size={16} />
-                          {deletingId === question._id ? "Deleting..." : "Delete"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <div className="mb-5 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Question List</h2>
+          <p className="text-sm text-slate-400">
+            {questions.length} question{questions.length !== 1 ? "s" : ""}
+          </p>
         </div>
-      </AppLayout>
+
+        {loading ? (
+          <LoadingState
+            title="Loading DSA questions"
+            message="Please wait while we fetch your tracked coding problems."
+          />
+        ) : questions.length === 0 ? (
+          <EmptyState
+            icon={BookOpen}
+            title="No DSA questions added yet"
+            message="Add your first coding problem to start tracking DSA progress."
+            buttonText="Add First Question"
+            onAction={() => setShowForm(true)}
+          />
+        ) : (
+          <div className="space-y-4">
+            {questions.map((question) => (
+              <div
+                key={question._id}
+                className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
+              >
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold">{question.title}</h3>
+
+                    <p className="mt-2 text-sm text-slate-400">
+                      {question.platform} • {question.topic}
+                    </p>
+
+                    {question.problemUrl && (
+                      <a
+                        href={question.problemUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 inline-block text-sm text-blue-400 hover:text-blue-300"
+                      >
+                        Open Problem
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs capitalize ${getDifficultyClass(
+                        question.difficulty
+                      )}`}
+                    >
+                      {question.difficulty}
+                    </span>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs capitalize ${getStatusClass(
+                        question.status
+                      )}`}
+                    >
+                      {question.status?.replace("_", " ")}
+                    </span>
+                  </div>
+                </div>
+
+                {question.notes && (
+                  <p className="mt-4 rounded-xl bg-slate-900 px-4 py-3 text-sm leading-6 text-slate-400">
+                    {question.notes}
+                  </p>
+                )}
+
+                <div className="mt-5 flex gap-3">
+                  <button
+                    onClick={() => handleEdit(question)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-700 px-4 py-2 text-sm text-slate-300 hover:bg-slate-800"
+                  >
+                    <Edit size={16} />
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(question._id)}
+                    disabled={deletingId === question._id}
+                    className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-60"
+                  >
+                    <Trash2 size={16} />
+                    {deletingId === question._id ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </AppLayout>
   );
 };
 
 const StatsCard = ({ title, value, subtitle }) => {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-      <div className="mb-3 rounded-xl bg-blue-500/10 p-3 text-blue-300 w-fit">
+      <div className="mb-3 w-fit rounded-xl bg-blue-500/10 p-3 text-blue-300">
         <CheckCircle2 size={22} />
       </div>
 

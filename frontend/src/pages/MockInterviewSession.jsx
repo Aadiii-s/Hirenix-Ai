@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -13,10 +13,14 @@ import {
   getMockInterviewByIdApi,
   submitInterviewAnswerApi,
 } from "../api/interview.api";
+
 import AppLayout from "../components/AppLayout";
+import ErrorState from "../components/ErrorState";
+import LoadingState from "../components/LoadingState";
 
 const MockInterviewSession = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [interview, setInterview] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -30,6 +34,7 @@ const MockInterviewSession = () => {
   const fetchInterview = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const response = await getMockInterviewByIdApi(id);
 
@@ -110,28 +115,25 @@ const MockInterviewSession = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-          Loading interview...
-        </div>
-      </Layout>
+      <AppLayout>
+        <LoadingState
+          title="Loading mock interview"
+          message="Please wait while we fetch your interview questions and progress."
+        />
+      </AppLayout>
     );
   }
 
   if (error) {
     return (
-      <Layout>
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
-          <p>{error}</p>
-
-          <Link
-            to="/mock-interviews"
-            className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-          >
-            Back to Interviews
-          </Link>
-        </div>
-      </Layout>
+      <AppLayout>
+        <ErrorState
+          title="Interview not found"
+          message={error}
+          buttonText="Back to Interviews"
+          onRetry={() => navigate("/mock-interviews")}
+        />
+      </AppLayout>
     );
   }
 
@@ -170,7 +172,7 @@ const MockInterviewSession = () => {
       ) : (
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
-            <div className="mb-5 flex items-center justify-between">
+            <div className="mb-5 flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm text-blue-400">
                   Question {currentQuestionIndex + 1} of{" "}
@@ -276,22 +278,13 @@ const MockInterviewSession = () => {
   );
 };
 
-const Layout = ({ children }) => {
-  return (
-    <AppLayout>
-
-      <main className="flex-1 px-6 py-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">{children}</div>
-      </main>
-    </AppLayout>
-  );
-};
-
 const InfoBox = ({ label, value }) => {
   return (
     <div className="rounded-xl bg-slate-950 p-4">
       <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 font-semibold capitalize">{value}</p>
+      <p className="mt-1 font-semibold capitalize">
+        {String(value).replace("_", " ")}
+      </p>
     </div>
   );
 };

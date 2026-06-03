@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   Building2,
@@ -13,10 +13,14 @@ import {
   toggleCompanyTaskApi,
   updateCompanyPrepApi,
 } from "../api/company.api";
+
 import AppLayout from "../components/AppLayout";
+import ErrorState from "../components/ErrorState";
+import LoadingState from "../components/LoadingState";
 
 const CompanyDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [company, setCompany] = useState(null);
   const [editData, setEditData] = useState({
@@ -33,6 +37,7 @@ const CompanyDetails = () => {
   const fetchCompany = async () => {
     try {
       setLoading(true);
+      setError("");
 
       const response = await getCompanyPrepByIdApi(id);
 
@@ -92,9 +97,10 @@ const CompanyDetails = () => {
   if (loading) {
     return (
       <AppLayout>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-          Loading company preparation...
-        </div>
+        <LoadingState
+          title="Loading company preparation"
+          message="Please wait while we fetch company-specific preparation details."
+        />
       </AppLayout>
     );
   }
@@ -102,16 +108,12 @@ const CompanyDetails = () => {
   if (error) {
     return (
       <AppLayout>
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
-          <p>{error}</p>
-
-          <Link
-            to="/companies"
-            className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-          >
-            Back to Companies
-          </Link>
-        </div>
+        <ErrorState
+          title="Company not found"
+          message={error}
+          buttonText="Back to Companies"
+          onRetry={() => navigate("/companies")}
+        />
       </AppLayout>
     );
   }
@@ -299,7 +301,6 @@ const CompanyDetails = () => {
     </AppLayout>
   );
 };
-
 
 const InfoBox = ({ label, value }) => {
   return (

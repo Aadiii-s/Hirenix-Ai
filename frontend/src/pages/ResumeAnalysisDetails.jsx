@@ -1,332 +1,292 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-    Apple,
-    ArrowLeft,
-    CheckCircle2,
-    FileText,
-    Lightbulb,
-    Target,
-    XCircle,
+  ArrowLeft,
+  CheckCircle2,
+  FileText,
+  Lightbulb,
+  Target,
+  XCircle,
 } from "lucide-react";
+
 import { getResumeAnalysisByIdApi } from "../api/resume.api";
+
 import AppLayout from "../components/AppLayout";
+import ErrorState from "../components/ErrorState";
+import LoadingState from "../components/LoadingState";
 
 const ResumeAnalysisDetails = () => {
-    const { id } = useParams();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-    const [analysis, setAnalysis] = useState(null);
-    const [activeTab, setActiveTab] = useState("overview");
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+  const [analysis, setAnalysis] = useState(null);
+  const [activeTab, setActiveTab] = useState("overview");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    const fetchAnalysis = async () => {
-        try {
-            setLoading(true);
+  const fetchAnalysis = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-            const response = await getResumeAnalysisByIdApi(id);
+      const response = await getResumeAnalysisByIdApi(id);
 
-            setAnalysis(response.data);
-        } catch (error) {
-            setError(
-                error.response?.data?.message || "Failed to fetch resume analysis"
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchAnalysis();
-    }, [id]);
-
-    const getScoreColor = (score) => {
-        if (score >= 80) return "text-green-300";
-        if (score >= 60) return "text-yellow-300";
-        return "text-red-300";
-    };
-
-    if (loading) {
-        return (
-            <AppLayout>
-
-                <main className="flex-1 px-6 py-6 lg:px-8">
-                    <div className="mx-auto max-w-7xl rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-                        Loading resume analysis...
-                    </div>
-                </main>
-            </AppLayout>
-        );
+      setAnalysis(response.data);
+    } catch (error) {
+      setError(
+        error.response?.data?.message || "Failed to fetch resume analysis"
+      );
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (error) {
-        return (
-            <AppLayout>
-                <div className="mx-auto max-w-7xl rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
-                    <p>{error}</p>
+  useEffect(() => {
+    fetchAnalysis();
+  }, [id]);
 
-                    <Link
-                        to="/resume-analyses"
-                        className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-                    >
-                        Back to Resume History
-                    </Link>
-                </div>
-            </AppLayout>
-        );
-    }
-
-    if (!analysis) return null;
-
+  if (loading) {
     return (
-        <AppLayout>
-
-            <main className="flex-1 px-6 py-6 lg:px-8">
-                <div className="mx-auto max-w-7xl">
-                    <div className="mb-8">
-                        <Link
-                            to="/resume-analyses"
-                            className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-                        >
-                            <ArrowLeft size={16} />
-                            Back to resume history
-                        </Link>
-
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-                            <p className="text-blue-400 font-medium">Resume Analysis</p>
-
-                            <h1 className="mt-2 text-3xl font-bold md:text-4xl">
-                                {analysis.originalFileName}
-                            </h1>
-
-                            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-                                <div className="rounded-xl bg-slate-950 p-4">
-                                    <p className="text-xs text-slate-500">ATS Score</p>
-                                    <p
-                                        className={`mt-1 text-3xl font-bold ${getScoreColor(
-                                            analysis.atsScore
-                                        )}`}
-                                    >
-                                        {analysis.atsScore}/100
-                                    </p>
-
-                                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
-                                        <div
-                                            className="h-full rounded-full bg-blue-600"
-                                            style={{ width: `${analysis.atsScore || 0}%` }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="rounded-xl bg-slate-950 p-4">
-                                    <p className="text-xs text-slate-500">Target Role</p>
-                                    <p className="mt-1 font-semibold">
-                                        {analysis.targetRole || "Software Developer"}
-                                    </p>
-                                </div>
-
-                                <div className="rounded-xl bg-slate-950 p-4">
-                                    <p className="text-xs text-slate-500">Analyzed On</p>
-                                    <p className="mt-1 font-semibold">
-                                        {new Date(analysis.createdAt).toLocaleDateString()}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <p className="mt-5 text-slate-300">
-                                {analysis.summary}
-                            </p>
-                        </div>
-                    </div>
-
-                    <section className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-4">
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                            <CheckCircle2 className="mb-3 text-green-300" size={24} />
-                            <p className="text-sm text-slate-400">Strengths</p>
-                            <p className="mt-1 text-3xl font-bold">
-                                {analysis.strengths?.length || 0}
-                            </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                            <XCircle className="mb-3 text-red-300" size={24} />
-                            <p className="text-sm text-slate-400">Weaknesses</p>
-                            <p className="mt-1 text-3xl font-bold">
-                                {analysis.weaknesses?.length || 0}
-                            </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                            <Target className="mb-3 text-yellow-300" size={24} />
-                            <p className="text-sm text-slate-400">Missing Keywords</p>
-                            <p className="mt-1 text-3xl font-bold">
-                                {analysis.missingKeywords?.length || 0}
-                            </p>
-                        </div>
-
-                        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-                            <Lightbulb className="mb-3 text-blue-300" size={24} />
-                            <p className="text-sm text-slate-400">Improved Bullets</p>
-                            <button onClick={() => navigator.clipboard.writeText(bullet)}>
-                                Copy
-                            </button>
-                            <p className="mt-1 text-3xl font-bold">
-                                {analysis.improvedBullets?.length || 0}
-                            </p>
-                        </div>
-                    </section>
-
-                    <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-                        <div className="mb-6 flex flex-wrap gap-3">
-                            {[
-                                ["overview", "Overview"],
-                                ["keywords", "Keywords"],
-                                ["bullets", "Improved Bullets"],
-                                ["suggestions", "Suggestions"],
-                            ].map(([key, label]) => (
-                                <button
-                                    key={key}
-                                    onClick={() => setActiveTab(key)}
-                                    className={`rounded-xl px-4 py-2 text-sm font-semibold, cursor-pointer ${activeTab === key
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-slate-950 text-slate-400"
-                                        }`}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
-
-                        {activeTab === "overview" && (
-                            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                                    <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-                                        <CheckCircle2 className="text-green-300" size={22} />
-                                        Strengths
-                                    </h3>
-
-                                    <ul className="space-y-3">
-                                        {analysis.strengths?.map((item, index) => (
-                                            <li
-                                                key={index}
-                                                className="rounded-xl bg-slate-900 px-4 py-3 text-sm text-slate-300"
-                                            >
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-
-                                <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                                    <h3 className="mb-4 flex items-center gap-2 text-xl font-semibold">
-                                        <XCircle className="text-red-300" size={22} />
-                                        Weaknesses
-                                    </h3>
-
-                                    <ul className="space-y-3">
-                                        {analysis.weaknesses?.map((item, index) => (
-                                            <li
-                                                key={index}
-                                                className="rounded-xl bg-slate-900 px-4 py-3 text-sm text-slate-300"
-                                            >
-                                                {item}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === "keywords" && (
-                            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                                <h3 className="mb-4 text-xl font-semibold">
-                                    Missing Keywords
-                                </h3>
-
-                                {analysis.missingKeywords?.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2">
-                                        {analysis.missingKeywords.map((keyword) => (
-                                            <span
-                                                key={keyword}
-                                                className="rounded-full bg-yellow-500/10 px-3 py-1 text-sm text-yellow-300"
-                                            >
-                                                {keyword}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-slate-400">
-                                        No missing keywords found.
-                                    </p>
-                                )}
-                            </div>
-                        )}
-
-                        {activeTab === "bullets" && (
-                            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-                                <h3 className="mb-4 text-xl font-semibold">
-                                    Improved Resume Bullets
-                                </h3>
-
-                                <ul className="space-y-3">
-                                    {analysis.improvedBullets?.map((bullet, index) => (
-                                        <li
-                                            key={index}
-                                            className="rounded-xl bg-slate-900 px-4 py-3 text-sm text-slate-300"
-                                        >
-                                            {bullet}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {activeTab === "suggestions" && (
-                            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-                                <SuggestionBox
-                                    title="Project Suggestions"
-                                    items={analysis.projectSuggestions}
-                                />
-
-                                <SuggestionBox
-                                    title="Skills Suggestions"
-                                    items={analysis.skillsSuggestions}
-                                />
-
-                                <SuggestionBox
-                                    title="Final Suggestions"
-                                    items={analysis.finalSuggestions}
-                                />
-                            </div>
-                        )}
-                    </section>
-                </div>
-            </main>
-        </AppLayout>
+      <AppLayout>
+        <LoadingState
+          title="Loading resume report"
+          message="Please wait while we fetch your resume ATS report and AI suggestions."
+        />
+      </AppLayout>
     );
+  }
+
+  if (error) {
+    return (
+      <AppLayout>
+        <ErrorState
+          title="Resume report not found"
+          message={error}
+          buttonText="Back to Resume History"
+          onRetry={() => navigate("/resume-analyses")}
+        />
+      </AppLayout>
+    );
+  }
+
+  if (!analysis) return null;
+
+  return (
+    <AppLayout>
+      <div className="mb-8">
+        <Link
+          to="/resume-analyses"
+          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
+        >
+          <ArrowLeft size={16} />
+          Back to resume history
+        </Link>
+
+        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-blue-500/10 p-4 text-blue-300">
+              <FileText size={28} />
+            </div>
+
+            <div>
+              <p className="font-medium text-blue-400">Resume Analysis Report</p>
+              <h1 className="text-3xl font-bold">
+                {analysis.originalFileName || "Resume Report"}
+              </h1>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+            <InfoBox label="ATS Score" value={`${analysis.atsScore || 0}/100`} />
+            <InfoBox
+              label="Missing Keywords"
+              value={analysis.missingKeywords?.length || 0}
+            />
+            <InfoBox
+              label="Strengths"
+              value={analysis.strengths?.length || 0}
+            />
+            <InfoBox
+              label="Improvements"
+              value={analysis.improvements?.length || 0}
+            />
+          </div>
+
+          <div className="mt-6">
+            <div className="mb-2 flex justify-between text-sm">
+              <span className="text-slate-400">ATS Score</span>
+              <span className="font-semibold text-slate-300">
+                {analysis.atsScore || 0}%
+              </span>
+            </div>
+
+            <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+              <div
+                className="h-full rounded-full bg-blue-600"
+                style={{ width: `${analysis.atsScore || 0}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <ResumeListCard
+          title="Strengths"
+          icon={CheckCircle2}
+          items={analysis.strengths}
+          color="green"
+        />
+
+        <ResumeListCard
+          title="Weaknesses"
+          icon={XCircle}
+          items={analysis.weaknesses}
+          color="red"
+        />
+
+        <ResumeListCard
+          title="Missing Keywords"
+          icon={Target}
+          items={analysis.missingKeywords}
+          color="yellow"
+        />
+      </section>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+        <div className="mb-6 flex flex-wrap gap-3">
+          {[
+            ["overview", "Overview"],
+            ["improvements", "Improvements"],
+            ["bullets", "Improved Bullets"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                activeTab === key
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-950 text-slate-400 hover:bg-slate-800"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "overview" && (
+          <div className="space-y-5">
+            <div className="rounded-2xl bg-slate-950 p-5">
+              <h2 className="mb-3 text-xl font-semibold">Summary</h2>
+              <p className="text-sm leading-6 text-slate-400">
+                {analysis.summary || "No summary available."}
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-slate-950 p-5">
+              <h2 className="mb-3 text-xl font-semibold">Final Advice</h2>
+              <p className="text-sm leading-6 text-slate-400">
+                {analysis.finalAdvice ||
+                  "Improve your resume with stronger keywords, measurable achievements, and role-specific project impact."}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "improvements" && (
+          <div className="space-y-3">
+            {analysis.improvements?.length > 0 ? (
+              analysis.improvements.map((item, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-300"
+                >
+                  {item}
+                </div>
+              ))
+            ) : (
+              <MiniEmptyState
+                icon={Lightbulb}
+                text="No improvement suggestions available."
+              />
+            )}
+          </div>
+        )}
+
+        {activeTab === "bullets" && (
+          <div className="space-y-3">
+            {analysis.improvedBullets?.length > 0 ? (
+              analysis.improvedBullets.map((bullet, index) => (
+                <div
+                  key={index}
+                  className="rounded-xl bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-300"
+                >
+                  {bullet}
+                </div>
+              ))
+            ) : (
+              <MiniEmptyState
+                icon={FileText}
+                text="No improved bullets available."
+              />
+            )}
+          </div>
+        )}
+      </section>
+    </AppLayout>
+  );
 };
 
-const SuggestionBox = ({ title, items = [] }) => {
-    return (
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
-            <h3 className="mb-4 text-xl font-semibold">{title}</h3>
+const InfoBox = ({ label, value }) => {
+  return (
+    <div className="rounded-xl bg-slate-950 p-4">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-1 font-semibold capitalize">{String(value)}</p>
+    </div>
+  );
+};
 
-            {items?.length > 0 ? (
-                <ul className="space-y-3">
-                    {items.map((item, index) => (
-                        <li
-                            key={index}
-                            className="rounded-xl bg-slate-900 px-4 py-3 text-sm text-slate-300"
-                        >
-                            {item}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <p className="text-sm text-slate-400">No suggestions available.</p>
-            )}
-        </div>
-    );
+const ResumeListCard = ({ title, icon: Icon, items = [], color }) => {
+  const colorClass =
+    color === "green"
+      ? "text-green-300 bg-green-500/10"
+      : color === "red"
+      ? "text-red-300 bg-red-500/10"
+      : "text-yellow-300 bg-yellow-500/10";
+
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <div className={`mb-4 w-fit rounded-xl p-3 ${colorClass}`}>
+        <Icon size={22} />
+      </div>
+
+      <h2 className="text-xl font-semibold">{title}</h2>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {items?.length > 0 ? (
+          items.map((item, index) => (
+            <span
+              key={`${item}-${index}`}
+              className="rounded-full bg-slate-950 px-3 py-1 text-sm text-slate-300"
+            >
+              {item}
+            </span>
+          ))
+        ) : (
+          <p className="text-sm text-slate-400">No data available.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const MiniEmptyState = ({ icon: Icon, text }) => {
+  return (
+    <div className="rounded-xl bg-slate-950 p-8 text-center text-slate-400">
+      <Icon className="mx-auto mb-3 text-slate-500" size={26} />
+      {text}
+    </div>
+  );
 };
 
 export default ResumeAnalysisDetails;

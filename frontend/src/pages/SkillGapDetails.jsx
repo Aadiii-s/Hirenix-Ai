@@ -1,19 +1,24 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   CheckCircle2,
   Flame,
   Lightbulb,
+  Search,
   Target,
   XCircle,
 } from "lucide-react";
 
 import { getSkillGapAnalysisByIdApi } from "../api/skillGap.api";
+
 import AppLayout from "../components/AppLayout";
+import ErrorState from "../components/ErrorState";
+import LoadingState from "../components/LoadingState";
 
 const SkillGapDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [analysis, setAnalysis] = useState(null);
   const [activeTab, setActiveTab] = useState("skills");
@@ -44,9 +49,10 @@ const SkillGapDetails = () => {
   if (loading) {
     return (
       <AppLayout>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center text-slate-400">
-          Loading skill gap report...
-        </div>
+        <LoadingState
+          title="Loading skill gap report"
+          message="Please wait while we fetch your AI-generated skill gap analysis."
+        />
       </AppLayout>
     );
   }
@@ -54,16 +60,12 @@ const SkillGapDetails = () => {
   if (error) {
     return (
       <AppLayout>
-        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-red-300">
-          <p>{error}</p>
-
-          <Link
-            to="/skill-gap/history"
-            className="mt-5 inline-block rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-          >
-            Back to History
-          </Link>
-        </div>
+        <ErrorState
+          title="Skill gap report not found"
+          message={error}
+          buttonText="Back to History"
+          onRetry={() => navigate("/skill-gap/history")}
+        />
       </AppLayout>
     );
   }
@@ -88,32 +90,6 @@ const SkillGapDetails = () => {
 
           <p className="mt-4 text-slate-300">{analysis.summary}</p>
 
-          <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <Target size={18} className="text-blue-300" />
-              <h2 className="font-semibold text-blue-200">
-                Focus This Week
-              </h2>
-            </div>
-
-            {analysis.topThreeFocusAreas?.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {analysis.topThreeFocusAreas.map((focus) => (
-                  <span
-                    key={focus}
-                    className="rounded-full border border-blue-500/30 bg-slate-950 px-4 py-2 text-sm font-medium text-blue-300"
-                  >
-                    {focus}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-slate-400">
-                Generate a new skill gap analysis to get weekly focus areas.
-              </p>
-            )}
-          </div>
-
           <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-4">
             <InfoBox
               label="Missing Skills"
@@ -129,6 +105,28 @@ const SkillGapDetails = () => {
             />
             <InfoBox label="Impact" value={analysis.readinessImpact} />
           </div>
+
+          {analysis.topThreeFocusAreas?.length > 0 && (
+            <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-5">
+              <div className="mb-3 flex items-center gap-2">
+                <Target size={18} className="text-blue-300" />
+                <h2 className="font-semibold text-blue-200">
+                  Focus This Week
+                </h2>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {analysis.topThreeFocusAreas.map((focus) => (
+                  <span
+                    key={focus}
+                    className="rounded-full bg-slate-950 px-4 py-2 text-sm text-blue-300"
+                  >
+                    {focus}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -165,10 +163,11 @@ const SkillGapDetails = () => {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold ${activeTab === key
+              className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                activeTab === key
                   ? "bg-blue-600 text-white"
-                  : "bg-slate-950 text-slate-400"
-                }`}
+                  : "bg-slate-950 text-slate-400 hover:bg-slate-800"
+              }`}
             >
               {label}
             </button>
@@ -194,12 +193,13 @@ const SkillGapDetails = () => {
                     </div>
 
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${item.priority === "high"
+                      className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
+                        item.priority === "high"
                           ? "bg-red-500/10 text-red-300"
                           : item.priority === "medium"
-                            ? "bg-yellow-500/10 text-yellow-300"
-                            : "bg-green-500/10 text-green-300"
-                        }`}
+                          ? "bg-yellow-500/10 text-yellow-300"
+                          : "bg-green-500/10 text-green-300"
+                      }`}
                     >
                       {item.priority}
                     </span>
@@ -221,7 +221,10 @@ const SkillGapDetails = () => {
                 </div>
               ))
             ) : (
-              <EmptyState text="No priority skills available." />
+              <MiniEmptyState
+                icon={Lightbulb}
+                text="No priority skills available."
+              />
             )}
           </div>
         )}
@@ -261,7 +264,10 @@ const SkillGapDetails = () => {
                 </div>
               ))
             ) : (
-              <EmptyState text="No learning plan available." />
+              <MiniEmptyState
+                icon={Search}
+                text="No learning plan available."
+              />
             )}
           </div>
         )}
@@ -278,7 +284,10 @@ const SkillGapDetails = () => {
                 </span>
               ))
             ) : (
-              <EmptyState text="No required skills available." />
+              <MiniEmptyState
+                icon={Search}
+                text="No required skills available."
+              />
             )}
           </div>
         )}
@@ -287,12 +296,11 @@ const SkillGapDetails = () => {
   );
 };
 
-
 const InfoBox = ({ label, value }) => {
   return (
     <div className="rounded-xl bg-slate-950 p-4">
       <p className="text-xs text-slate-500">{label}</p>
-      <p className="mt-1 font-semibold capitalize">{value}</p>
+      <p className="mt-1 font-semibold capitalize">{String(value)}</p>
     </div>
   );
 };
@@ -302,8 +310,8 @@ const SkillListCard = ({ title, icon: Icon, items = [], color }) => {
     color === "red"
       ? "text-red-300 bg-red-500/10"
       : color === "yellow"
-        ? "text-yellow-300 bg-yellow-500/10"
-        : "text-green-300 bg-green-500/10";
+      ? "text-yellow-300 bg-yellow-500/10"
+      : "text-green-300 bg-green-500/10";
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
@@ -331,9 +339,10 @@ const SkillListCard = ({ title, icon: Icon, items = [], color }) => {
   );
 };
 
-const EmptyState = ({ text }) => {
+const MiniEmptyState = ({ icon: Icon, text }) => {
   return (
     <div className="rounded-xl bg-slate-950 p-8 text-center text-slate-400">
+      <Icon className="mx-auto mb-3 text-slate-500" size={26} />
       {text}
     </div>
   );
