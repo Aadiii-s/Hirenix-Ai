@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, History, Sparkles, Upload } from "lucide-react";
+import { FileText, History, Sparkles, Upload } from "lucide-react";
 
 import { analyzeResumeApi } from "../api/resume.api";
 import AppLayout from "../components/AppLayout";
+import SectionCard from "../components/SectionCard";
+import PageHeader from "../components/PageHeader";
 
 const ResumeAnalyzer = () => {
   const navigate = useNavigate();
@@ -58,31 +60,14 @@ const ResumeAnalyzer = () => {
 
   return (
     <AppLayout maxWidth="max-w-5xl">
-      <div className="mb-8">
-        <Link
-          to="/dashboard"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-        >
-          <ArrowLeft size={16} />
-          Back to dashboard
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-blue-500/10 p-4 text-blue-300">
-            <FileText size={30} />
-          </div>
-
-          <div>
-            <p className="font-medium text-blue-400">AI Resume Analyzer</p>
-            <h1 className="text-4xl font-bold">Analyze Your Resume</h1>
-          </div>
-        </div>
-
-        <p className="mt-4 max-w-3xl text-slate-400">
-          Upload your PDF resume and get ATS score, missing keywords,
-          strengths, weaknesses, improved bullets, and AI suggestions.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="AI Resume Analyzer"
+        title="Analyze Your Resume"
+        description="Upload your PDF resume and get ATS score, missing keywords, strengths, weaknesses, improved bullets, and AI suggestions."
+        icon={FileText}
+        backPath="/dashboard"
+        backLabel="Back to dashboard"
+      />
 
       {error && (
         <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -91,65 +76,68 @@ const ResumeAnalyzer = () => {
       )}
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <form
-          onSubmit={handleAnalyze}
-          className="rounded-2xl border border-slate-800 bg-slate-900 p-6 lg:col-span-2"
-        >
-          <div className="mb-6 flex items-center gap-3">
-            <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
-              <Upload size={22} />
+        <form onSubmit={handleAnalyze} className="lg:col-span-2">
+          <SectionCard
+            title="Upload Resume"
+            description="PDF format is required for analysis."
+            icon={Upload}
+          >
+            <div className="mb-6 flex items-center gap-3">
+              <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
+                <Upload size={22} />
+              </div>
+
+              <div>
+                <h2 className="text-xl font-semibold">Upload Resume</h2>
+                <p className="text-sm text-slate-400">
+                  PDF format is required for analysis.
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h2 className="text-xl font-semibold">Upload Resume</h2>
-              <p className="text-sm text-slate-400">
-                PDF format is required for analysis.
-              </p>
-            </div>
-          </div>
+            <div className="space-y-5">
+              <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-950 px-6 py-10 text-center hover:border-blue-500/60">
+                <Upload className="mb-4 text-blue-300" size={36} />
 
-          <div className="space-y-5">
-            <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-700 bg-slate-950 px-6 py-10 text-center hover:border-blue-500/60">
-              <Upload className="mb-4 text-blue-300" size={36} />
+                <p className="font-semibold text-white">
+                  {resumeFile ? resumeFile.name : "Click to upload resume PDF"}
+                </p>
 
-              <p className="font-semibold text-white">
-                {resumeFile ? resumeFile.name : "Click to upload resume PDF"}
-              </p>
+                <p className="mt-2 text-sm text-slate-400">
+                  Only PDF files are supported.
+                </p>
 
-              <p className="mt-2 text-sm text-slate-400">
-                Only PDF files are supported.
-              </p>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
 
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                className="hidden"
+              <Input
+                label="Target Role"
+                value={targetRole}
+                onChange={(e) => setTargetRole(e.target.value)}
+                placeholder="Software Development Engineer"
               />
-            </label>
 
-            <Input
-              label="Target Role"
-              value={targetRole}
-              onChange={(e) => setTargetRole(e.target.value)}
-              placeholder="Software Development Engineer"
-            />
+              <Input
+                label="Target Company"
+                value={targetCompany}
+                onChange={(e) => setTargetCompany(e.target.value)}
+                placeholder="Google, Amazon, Microsoft, General..."
+              />
 
-            <Input
-              label="Target Company"
-              value={targetCompany}
-              onChange={(e) => setTargetCompany(e.target.value)}
-              placeholder="Google, Amazon, Microsoft, General..."
-            />
-
-            <button
-              disabled={loading}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              <Sparkles size={18} />
-              {loading ? "Analyzing Resume..." : "Analyze Resume"}
-            </button>
-          </div>
+              <button
+                disabled={loading}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <Sparkles size={18} />
+                {loading ? "Analyzing Resume..." : "Analyze Resume"}
+              </button>
+            </div>
+          </SectionCard>
         </form>
 
         <aside className="space-y-5">

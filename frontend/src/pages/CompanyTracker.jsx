@@ -21,6 +21,7 @@ import AppLayout from "../components/AppLayout";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import { useAuth } from "../context/AuthContext";
+import StatCard from "../components/StatCard";
 
 const initialFormData = {
   companyName: "",
@@ -243,28 +244,35 @@ const CompanyTracker = () => {
       </div>
 
       <section className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <StatsCard
+        <StatCard
           title="Total Companies"
           value={stats?.totalCompanies || 0}
           subtitle="Tracked companies"
+          icon={Building2}
         />
 
-        <StatsCard
+        <StatCard
           title="High Priority"
           value={stats?.highPriorityCompanies || 0}
           subtitle="Important targets"
+          icon={CheckCircle2}
+          tone="red"
         />
 
-        <StatsCard
+        <StatCard
           title="Applied"
           value={stats?.appliedCompanies || 0}
           subtitle="Applications submitted"
+          icon={CheckCircle2}
+          tone="green"
         />
 
-        <StatsCard
+        <StatCard
           title="Avg Progress"
           value={`${stats?.averageProgress || 0}%`}
           subtitle="Across companies"
+          icon={CheckCircle2}
+          tone="blue"
         />
       </section>
 
@@ -580,19 +588,6 @@ const CompanyTracker = () => {
   );
 };
 
-const StatsCard = ({ title, value, subtitle }) => {
-  return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-      <div className="mb-3 w-fit rounded-xl bg-blue-500/10 p-3 text-blue-300">
-        <CheckCircle2 size={22} />
-      </div>
-
-      <p className="text-sm text-slate-400">{title}</p>
-      <h2 className="mt-2 text-3xl font-bold">{value}</h2>
-      <p className="mt-2 text-xs text-slate-500">{subtitle}</p>
-    </div>
-  );
-};
 
 const Input = ({ label, ...props }) => {
   return (
