@@ -22,6 +22,8 @@ import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/StatCard";
+import PageHeader from "../components/PageHeader";
+import SectionCard from "../components/SectionCard";
 
 const initialFormData = {
   companyName: "",
@@ -224,24 +226,23 @@ const CompanyTracker = () => {
 
   return (
     <AppLayout>
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="font-medium text-blue-400">Company-wise Preparation</p>
-          <h1 className="mt-2 text-4xl font-bold">Target Company Tracker</h1>
-          <p className="mt-2 text-slate-400">
-            Track company-specific preparation, application status, tasks, and
-            progress.
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowForm(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
-        >
-          <Plus size={18} />
-          Add Company
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Company-wise Preparation"
+        title="Target Company Tracker"
+        description="Track company-specific preparation, application status, tasks, and progress."
+        icon={Building2}
+        backPath="/dashboard"
+        backLabel="Back to dashboard"
+        action={
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+          >
+            <Plus size={18} />
+            Add Company
+          </button>
+        }
+      />
 
       <section className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -272,16 +273,16 @@ const CompanyTracker = () => {
           value={`${stats?.averageProgress || 0}%`}
           subtitle="Across companies"
           icon={CheckCircle2}
-          tone="blue"
+          tone="purple"
         />
       </section>
 
-      <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <Filter size={18} className="text-blue-300" />
-          <h2 className="text-lg font-semibold">Search & Filters</h2>
-        </div>
-
+      <SectionCard
+        className="mb-6"
+        title="Search & Filters"
+        description="Find companies by name, type, priority, or application status."
+        icon={Filter}
+      >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
           <div className="relative md:col-span-2">
             <Search
@@ -348,7 +349,7 @@ const CompanyTracker = () => {
         >
           Clear Filters
         </button>
-      </section>
+      </SectionCard>
 
       {error && (
         <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
@@ -357,18 +358,20 @@ const CompanyTracker = () => {
       )}
 
       {showForm && (
-        <section className="mb-6 rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Add Target Company</h2>
-
+        <SectionCard
+          className="mb-6"
+          title={editingCompanyId ? "Edit Target Company" : "Add Target Company"}
+          description="Add company details, preparation focus, tasks, and notes."
+          icon={Building2}
+          action={
             <button
               onClick={() => setShowForm(false)}
               className="rounded-xl bg-slate-800 p-2 text-slate-300 hover:bg-slate-700"
             >
               <X size={18} />
             </button>
-          </div>
-
+          }
+        >
           <form onSubmit={handleCreateCompany} className="space-y-5">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
               <Input
@@ -463,17 +466,15 @@ const CompanyTracker = () => {
               {creating ? "Creating..." : "Create Company Tracker"}
             </button>
           </form>
-        </section>
+        </SectionCard>
       )}
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Company List</h2>
-          <p className="text-sm text-slate-400">
-            {companies.length} company{companies.length !== 1 ? "ies" : ""}
-          </p>
-        </div>
-
+      <SectionCard
+        title="Company List"
+        description={`${companies.length} company${companies.length !== 1 ? "ies" : ""
+          } found`}
+        icon={Building2}
+      >
         {loading ? (
           <LoadingState
             title="Loading companies"
@@ -490,101 +491,112 @@ const CompanyTracker = () => {
         ) : (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
             {companies.map((company) => (
-              <div
+              <CompanyCard
                 key={company._id}
-                className="rounded-2xl border border-slate-800 bg-slate-950 p-5"
-              >
-                <div className="mb-4 flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-semibold">
-                      {company.companyName}
-                    </h3>
-                    <p className="mt-1 text-sm text-slate-400">
-                      {company.targetRole}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${getPriorityClass(
-                      company.priority
-                    )}`}
-                  >
-                    {company.priority}
-                  </span>
-                </div>
-
-                <div className="mb-4 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs capitalize text-blue-300">
-                    {company.companyType}
-                  </span>
-
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs capitalize ${getStatusClass(
-                      company.applicationStatus
-                    )}`}
-                  >
-                    {company.applicationStatus.replace("_", " ")}
-                  </span>
-                </div>
-
-                <p className="text-sm text-slate-400">
-                  Progress:{" "}
-                  <span className="text-slate-200">
-                    {company.progressPercentage || 0}%
-                  </span>
-                </p>
-
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
-                  <div
-                    className="h-full rounded-full bg-blue-600"
-                    style={{
-                      width: `${company.progressPercentage || 0}%`,
-                    }}
-                  />
-                </div>
-
-                <p className="mt-4 text-sm text-slate-500">
-                  Tasks:{" "}
-                  {company.tasks?.filter((task) => task.isCompleted).length || 0}
-                  /{company.tasks?.length || 0} completed
-                </p>
-
-                {company.preparationFocus?.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {company.preparationFocus.slice(0, 4).map((focus) => (
-                      <span
-                        key={focus}
-                        className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300"
-                      >
-                        {focus}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-6 flex gap-3">
-                  <Link
-                    to={`/companies/${company._id}`}
-                    className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-center text-sm font-semibold hover:bg-blue-700"
-                  >
-                    View
-                  </Link>
-
-                  <button
-                    onClick={() => handleDeleteCompany(company._id)}
-                    disabled={deletingId === company._id}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-60"
-                  >
-                    <Trash2 size={16} />
-                    {deletingId === company._id ? "..." : "Delete"}
-                  </button>
-                </div>
-              </div>
+                company={company}
+                deletingId={deletingId}
+                onDelete={handleDeleteCompany}
+                getPriorityClass={getPriorityClass}
+                getStatusClass={getStatusClass}
+              />
             ))}
           </div>
         )}
-      </section>
+      </SectionCard>
     </AppLayout>
+  );
+};
+
+const CompanyCard = ({
+  company,
+  deletingId,
+  onDelete,
+  getPriorityClass,
+  getStatusClass,
+}) => {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5 transition hover:border-blue-500/40">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h3 className="text-xl font-semibold">{company.companyName}</h3>
+          <p className="mt-1 text-sm text-slate-400">{company.targetRole}</p>
+        </div>
+
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${getPriorityClass(
+            company.priority
+          )}`}
+        >
+          {company.priority}
+        </span>
+      </div>
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        <span className="rounded-full bg-blue-500/10 px-3 py-1 text-xs capitalize text-blue-300">
+          {company.companyType}
+        </span>
+
+        <span
+          className={`rounded-full px-3 py-1 text-xs capitalize ${getStatusClass(
+            company.applicationStatus
+          )}`}
+        >
+          {company.applicationStatus.replace("_", " ")}
+        </span>
+      </div>
+
+      <p className="text-sm text-slate-400">
+        Progress:{" "}
+        <span className="text-slate-200">
+          {company.progressPercentage || 0}%
+        </span>
+      </p>
+
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800">
+        <div
+          className="h-full rounded-full bg-blue-600"
+          style={{
+            width: `${company.progressPercentage || 0}%`,
+          }}
+        />
+      </div>
+
+      <p className="mt-4 text-sm text-slate-500">
+        Tasks: {company.tasks?.filter((task) => task.isCompleted).length || 0}/
+        {company.tasks?.length || 0} completed
+      </p>
+
+      {company.preparationFocus?.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {company.preparationFocus.slice(0, 4).map((focus) => (
+            <span
+              key={focus}
+              className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300"
+            >
+              {focus}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-6 flex gap-3">
+        <Link
+          to={`/companies/${company._id}`}
+          className="flex-1 rounded-xl bg-blue-600 px-4 py-2 text-center text-sm font-semibold hover:bg-blue-700"
+        >
+          View
+        </Link>
+
+        <button
+          onClick={() => onDelete(company._id)}
+          disabled={deletingId === company._id}
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-60"
+        >
+          <Trash2 size={16} />
+          {deletingId === company._id ? "..." : "Delete"}
+        </button>
+      </div>
+    </div>
   );
 };
 

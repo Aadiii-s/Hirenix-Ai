@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
+  Brain,
   CheckCircle2,
   Clock,
   Send,
@@ -17,6 +17,8 @@ import {
 import AppLayout from "../components/AppLayout";
 import ErrorState from "../components/ErrorState";
 import LoadingState from "../components/LoadingState";
+import PageHeader from "../components/PageHeader";
+import SectionCard from "../components/SectionCard";
 
 const MockInterviewSession = () => {
   const { id } = useParams();
@@ -141,63 +143,57 @@ const MockInterviewSession = () => {
 
   return (
     <AppLayout>
-      <div className="mb-8">
-        <Link
-          to="/mock-interviews"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-        >
-          <ArrowLeft size={16} />
-          Back to interview history
-        </Link>
+      <PageHeader
+        eyebrow="AI Mock Interview"
+        title={interview.title}
+        description={`${interview.targetRole || "Target role"} • ${
+          interview.interviewType
+        } • ${interview.difficulty}`}
+        icon={Brain}
+        backPath="/mock-interviews"
+        backLabel="Back to interview history"
+      />
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <p className="font-medium text-blue-400">AI Mock Interview</p>
-
-          <h1 className="mt-2 text-3xl font-bold">{interview.title}</h1>
-
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-4">
-            <InfoBox label="Type" value={interview.interviewType} />
-            <InfoBox label="Difficulty" value={interview.difficulty} />
-            <InfoBox
-              label="Answered"
-              value={`${answeredCount}/${interview.questions.length}`}
-            />
-            <InfoBox label="Status" value={interview.status} />
-          </div>
+      <SectionCard className="mb-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <InfoBox label="Type" value={interview.interviewType} />
+          <InfoBox label="Difficulty" value={interview.difficulty} />
+          <InfoBox
+            label="Answered"
+            value={`${answeredCount}/${interview.questions.length}`}
+          />
+          <InfoBox label="Status" value={interview.status} />
         </div>
-      </div>
+      </SectionCard>
 
       {interview.status === "completed" ? (
         <InterviewReport interview={interview} />
       ) : (
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
-            <div className="mb-5 flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm text-blue-400">
-                  Question {currentQuestionIndex + 1} of{" "}
-                  {interview.questions.length}
-                </p>
-
-                <h2 className="mt-2 text-2xl font-semibold">
-                  {currentQuestion?.question}
-                </h2>
-              </div>
-
-              {currentQuestion?.isAnswered && (
-                <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm text-green-300">
-                  Answered
-                </span>
-              )}
-            </div>
+          <SectionCard
+            title={`Question ${currentQuestionIndex + 1} of ${
+              interview.questions.length
+            }`}
+            description={currentQuestion?.isAnswered ? "Already answered" : "Write and submit your answer"}
+            icon={Brain}
+            className="xl:col-span-2"
+          >
+            <h2 className="mb-5 text-2xl font-semibold">
+              {currentQuestion?.question}
+            </h2>
 
             <textarea
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
-              rows={8}
+              rows={9}
               placeholder="Write your interview answer here..."
               className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
             />
+
+            <div className="mt-2 flex justify-between text-xs text-slate-500">
+              <span>Tip: Use structured points and examples.</span>
+              <span>{answer.length} characters</span>
+            </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
               <button
@@ -220,61 +216,67 @@ const MockInterviewSession = () => {
             </div>
 
             {latestEvaluation && (
-              <div className="mt-6 rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5">
-                <p className="text-sm text-blue-300">Latest Evaluation</p>
-
-                <h3 className="mt-2 text-2xl font-bold">
-                  Score: {latestEvaluation.score}/10
-                </h3>
-
-                <p className="mt-3 text-sm leading-6 text-slate-300">
-                  {latestEvaluation.feedback}
-                </p>
-
-                {latestEvaluation.idealAnswer && (
-                  <div className="mt-4 rounded-xl bg-slate-950 p-4">
-                    <p className="mb-2 text-sm font-semibold text-slate-300">
-                      Ideal Answer
-                    </p>
-                    <p className="text-sm leading-6 text-slate-400">
-                      {latestEvaluation.idealAnswer}
-                    </p>
-                  </div>
-                )}
-              </div>
+              <EvaluationCard evaluation={latestEvaluation} />
             )}
-          </div>
+          </SectionCard>
 
-          <aside className="space-y-4">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-              <h3 className="text-lg font-semibold">Questions</h3>
+          <SectionCard
+            title="Questions"
+            description="Navigate through interview questions"
+            icon={Clock}
+          >
+            <div className="space-y-2">
+              {interview.questions.map((question, index) => (
+                <button
+                  key={question._id}
+                  onClick={() => setCurrentQuestionIndex(index)}
+                  className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm ${
+                    currentQuestionIndex === index
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-950 text-slate-300 hover:bg-slate-800"
+                  }`}
+                >
+                  <span>Question {index + 1}</span>
 
-              <div className="mt-4 space-y-2">
-                {interview.questions.map((question, index) => (
-                  <button
-                    key={question._id}
-                    onClick={() => setCurrentQuestionIndex(index)}
-                    className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm ${
-                      currentQuestionIndex === index
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-950 text-slate-300 hover:bg-slate-800"
-                    }`}
-                  >
-                    <span>Question {index + 1}</span>
-
-                    {question.isAnswered ? (
-                      <CheckCircle2 size={16} className="text-green-300" />
-                    ) : (
-                      <Clock size={16} className="text-slate-500" />
-                    )}
-                  </button>
-                ))}
-              </div>
+                  {question.isAnswered ? (
+                    <CheckCircle2 size={16} className="text-green-300" />
+                  ) : (
+                    <Clock size={16} className="text-slate-500" />
+                  )}
+                </button>
+              ))}
             </div>
-          </aside>
+          </SectionCard>
         </section>
       )}
     </AppLayout>
+  );
+};
+
+const EvaluationCard = ({ evaluation }) => {
+  return (
+    <div className="mt-6 rounded-2xl border border-blue-500/30 bg-blue-500/10 p-5">
+      <p className="text-sm text-blue-300">Latest Evaluation</p>
+
+      <h3 className="mt-2 text-2xl font-bold">
+        Score: {evaluation.score}/10
+      </h3>
+
+      <p className="mt-3 text-sm leading-6 text-slate-300">
+        {evaluation.feedback}
+      </p>
+
+      {evaluation.idealAnswer && (
+        <div className="mt-4 rounded-xl bg-slate-950 p-4">
+          <p className="mb-2 text-sm font-semibold text-slate-300">
+            Ideal Answer
+          </p>
+          <p className="text-sm leading-6 text-slate-400">
+            {evaluation.idealAnswer}
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -283,7 +285,7 @@ const InfoBox = ({ label, value }) => {
     <div className="rounded-xl bg-slate-950 p-4">
       <p className="text-xs text-slate-500">{label}</p>
       <p className="mt-1 font-semibold capitalize">
-        {String(value).replace("_", " ")}
+        {String(value || "N/A").replace("_", " ")}
       </p>
     </div>
   );
@@ -292,10 +294,12 @@ const InfoBox = ({ label, value }) => {
 const InterviewReport = ({ interview }) => {
   return (
     <section className="space-y-6">
-      <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <p className="text-blue-400">Final Interview Score</p>
-
-        <h2 className="mt-2 text-5xl font-bold">{interview.overallScore}%</h2>
+      <SectionCard
+        title="Final Interview Score"
+        description="Overall AI evaluation of this mock interview"
+        icon={Trophy}
+      >
+        <h2 className="text-5xl font-bold">{interview.overallScore}%</h2>
 
         <div className="mt-4 h-3 overflow-hidden rounded-full bg-slate-800">
           <div
@@ -305,16 +309,18 @@ const InterviewReport = ({ interview }) => {
         </div>
 
         <p className="mt-5 text-slate-300">{interview.overallFeedback}</p>
-      </div>
+      </SectionCard>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <ListCard title="Strengths" items={interview.strengths} />
         <ListCard title="Improvements" items={interview.improvements} />
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-        <h3 className="mb-5 text-xl font-semibold">Question Review</h3>
-
+      <SectionCard
+        title="Question Review"
+        description="Review your answers, scores, and feedback."
+        icon={Brain}
+      >
         <div className="space-y-4">
           {interview.questions.map((question, index) => (
             <div
@@ -338,16 +344,14 @@ const InterviewReport = ({ interview }) => {
             </div>
           ))}
         </div>
-      </div>
+      </SectionCard>
     </section>
   );
 };
 
 const ListCard = ({ title, items = [] }) => {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <h3 className="mb-4 text-xl font-semibold">{title}</h3>
-
+    <SectionCard title={title}>
       {items?.length > 0 ? (
         <ul className="space-y-3">
           {items.map((item, index) => (
@@ -362,7 +366,7 @@ const ListCard = ({ title, items = [] }) => {
       ) : (
         <p className="text-sm text-slate-400">No data available.</p>
       )}
-    </div>
+    </SectionCard>
   );
 };
 

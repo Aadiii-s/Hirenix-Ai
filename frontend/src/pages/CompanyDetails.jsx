@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   Building2,
   CheckCircle2,
   Circle,
@@ -17,12 +16,15 @@ import {
 import AppLayout from "../components/AppLayout";
 import ErrorState from "../components/ErrorState";
 import LoadingState from "../components/LoadingState";
+import PageHeader from "../components/PageHeader";
+import SectionCard from "../components/SectionCard";
 
 const CompanyDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [company, setCompany] = useState(null);
+
   const [editData, setEditData] = useState({
     priority: "medium",
     applicationStatus: "not_applied",
@@ -125,63 +127,50 @@ const CompanyDetails = () => {
 
   return (
     <AppLayout>
-      <div className="mb-8">
-        <Link
-          to="/companies"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-        >
-          <ArrowLeft size={16} />
-          Back to companies
-        </Link>
+      <PageHeader
+        eyebrow="Company Preparation"
+        title={company.companyName}
+        description={company.targetRole}
+        icon={Building2}
+        backPath="/companies"
+        backLabel="Back to companies"
+      />
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-blue-500/10 p-4 text-blue-300">
-              <Building2 size={28} />
-            </div>
+      <SectionCard className="mb-8">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <InfoBox label="Type" value={company.companyType} />
+          <InfoBox label="Priority" value={company.priority} />
+          <InfoBox label="Status" value={company.applicationStatus} />
+          <InfoBox
+            label="Tasks"
+            value={`${completedTasks}/${company.tasks?.length || 0}`}
+          />
+        </div>
 
-            <div>
-              <p className="font-medium text-blue-400">
-                Company Preparation
-              </p>
-              <h1 className="text-4xl font-bold">{company.companyName}</h1>
-            </div>
+        <div className="mt-6">
+          <div className="mb-2 flex justify-between text-sm">
+            <span className="text-slate-400">Preparation Progress</span>
+            <span className="text-slate-300">
+              {company.progressPercentage || 0}%
+            </span>
           </div>
 
-          <p className="mt-4 text-slate-400">{company.targetRole}</p>
-
-          <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-4">
-            <InfoBox label="Type" value={company.companyType} />
-            <InfoBox label="Priority" value={company.priority} />
-            <InfoBox label="Status" value={company.applicationStatus} />
-            <InfoBox
-              label="Tasks"
-              value={`${completedTasks}/${company.tasks?.length || 0}`}
+          <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+            <div
+              className="h-full rounded-full bg-blue-600"
+              style={{ width: `${company.progressPercentage || 0}%` }}
             />
           </div>
-
-          <div className="mt-6">
-            <div className="mb-2 flex justify-between text-sm">
-              <span className="text-slate-400">Preparation Progress</span>
-              <span className="text-slate-300">
-                {company.progressPercentage || 0}%
-              </span>
-            </div>
-
-            <div className="h-3 overflow-hidden rounded-full bg-slate-800">
-              <div
-                className="h-full rounded-full bg-blue-600"
-                style={{ width: `${company.progressPercentage || 0}%` }}
-              />
-            </div>
-          </div>
         </div>
-      </div>
+      </SectionCard>
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
-          <h2 className="mb-5 text-xl font-semibold">Preparation Tasks</h2>
-
+        <SectionCard
+          title="Preparation Tasks"
+          description="Click a task to mark it complete or incomplete."
+          icon={CheckCircle2}
+          className="xl:col-span-2"
+        >
           {company.tasks?.length > 0 ? (
             <div className="space-y-3">
               {company.tasks.map((task) => (
@@ -220,12 +209,14 @@ const CompanyDetails = () => {
               No tasks added for this company.
             </div>
           )}
-        </div>
+        </SectionCard>
 
         <aside className="space-y-5">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="mb-5 text-xl font-semibold">Update Status</h2>
-
+          <SectionCard
+            title="Update Status"
+            description="Update priority, application status, and notes."
+            icon={Save}
+          >
             <div className="space-y-4">
               <Select
                 label="Priority"
@@ -258,11 +249,13 @@ const CompanyDetails = () => {
                 <label className="mb-2 block text-sm text-slate-300">
                   Notes
                 </label>
+
                 <textarea
                   name="notes"
                   value={editData.notes}
                   onChange={handleEditChange}
                   rows={5}
+                  placeholder="Add important notes for this company..."
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
                 />
               </div>
@@ -276,11 +269,13 @@ const CompanyDetails = () => {
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <h2 className="mb-4 text-xl font-semibold">Preparation Focus</h2>
-
+          <SectionCard
+            title="Preparation Focus"
+            description="Main focus areas for this company."
+            icon={Building2}
+          >
             <div className="flex flex-wrap gap-2">
               {company.preparationFocus?.length > 0 ? (
                 company.preparationFocus.map((focus) => (
@@ -295,7 +290,7 @@ const CompanyDetails = () => {
                 <p className="text-sm text-slate-400">No focus added.</p>
               )}
             </div>
-          </div>
+          </SectionCard>
         </aside>
       </section>
     </AppLayout>
@@ -307,7 +302,7 @@ const InfoBox = ({ label, value }) => {
     <div className="rounded-xl bg-slate-950 p-4">
       <p className="text-xs text-slate-500">{label}</p>
       <p className="mt-1 font-semibold capitalize">
-        {String(value).replace("_", " ")}
+        {String(value || "N/A").replace("_", " ")}
       </p>
     </div>
   );
@@ -317,6 +312,7 @@ const Select = ({ label, options, ...props }) => {
   return (
     <div>
       <label className="mb-2 block text-sm text-slate-300">{label}</label>
+
       <select
         {...props}
         className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"
