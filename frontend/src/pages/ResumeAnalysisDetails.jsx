@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   CheckCircle2,
   FileText,
   Lightbulb,
@@ -14,6 +13,8 @@ import { getResumeAnalysisByIdApi } from "../api/resume.api";
 import AppLayout from "../components/AppLayout";
 import ErrorState from "../components/ErrorState";
 import LoadingState from "../components/LoadingState";
+import PageHeader from "../components/PageHeader";
+import SectionCard from "../components/SectionCard";
 
 const ResumeAnalysisDetails = () => {
   const { id } = useParams();
@@ -30,7 +31,6 @@ const ResumeAnalysisDetails = () => {
       setError("");
 
       const response = await getResumeAnalysisByIdApi(id);
-
       setAnalysis(response.data);
     } catch (error) {
       setError(
@@ -73,87 +73,74 @@ const ResumeAnalysisDetails = () => {
 
   return (
     <AppLayout>
-      <div className="mb-8">
-        <Link
-          to="/resume-analyses"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-        >
-          <ArrowLeft size={16} />
-          Back to resume history
-        </Link>
+      <PageHeader
+        eyebrow="Resume Analysis Report"
+        title={analysis.originalFileName || "Resume Report"}
+        description={
+          analysis.summary ||
+          "AI-generated resume analysis with ATS score, missing keywords, and improvement suggestions."
+        }
+        icon={FileText}
+        backPath="/resume-analyses"
+        backLabel="Back to resume history"
+      />
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-blue-500/10 p-4 text-blue-300">
-              <FileText size={28} />
-            </div>
+      <SectionCard className="mb-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+          <InfoBox label="ATS Score" value={`${analysis.atsScore || 0}/100`} />
+          <InfoBox
+            label="Missing Keywords"
+            value={analysis.missingKeywords?.length || 0}
+          />
+          <InfoBox label="Strengths" value={analysis.strengths?.length || 0} />
+          <InfoBox
+            label="Improvements"
+            value={analysis.improvements?.length || 0}
+          />
+        </div>
 
-            <div>
-              <p className="font-medium text-blue-400">Resume Analysis Report</p>
-              <h1 className="text-3xl font-bold">
-                {analysis.originalFileName || "Resume Report"}
-              </h1>
-            </div>
+        <div className="mt-6">
+          <div className="mb-2 flex justify-between text-sm">
+            <span className="text-slate-400">ATS Score</span>
+            <span className="font-semibold text-slate-300">
+              {analysis.atsScore || 0}%
+            </span>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-            <InfoBox label="ATS Score" value={`${analysis.atsScore || 0}/100`} />
-            <InfoBox
-              label="Missing Keywords"
-              value={analysis.missingKeywords?.length || 0}
+          <div className="h-3 overflow-hidden rounded-full bg-slate-800">
+            <div
+              className="h-full rounded-full bg-blue-600"
+              style={{ width: `${analysis.atsScore || 0}%` }}
             />
-            <InfoBox
-              label="Strengths"
-              value={analysis.strengths?.length || 0}
-            />
-            <InfoBox
-              label="Improvements"
-              value={analysis.improvements?.length || 0}
-            />
-          </div>
-
-          <div className="mt-6">
-            <div className="mb-2 flex justify-between text-sm">
-              <span className="text-slate-400">ATS Score</span>
-              <span className="font-semibold text-slate-300">
-                {analysis.atsScore || 0}%
-              </span>
-            </div>
-
-            <div className="h-3 overflow-hidden rounded-full bg-slate-800">
-              <div
-                className="h-full rounded-full bg-blue-600"
-                style={{ width: `${analysis.atsScore || 0}%` }}
-              />
-            </div>
           </div>
         </div>
-      </div>
+      </SectionCard>
 
       <section className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
         <ResumeListCard
           title="Strengths"
           icon={CheckCircle2}
           items={analysis.strengths}
-          color="green"
         />
 
         <ResumeListCard
           title="Weaknesses"
           icon={XCircle}
           items={analysis.weaknesses}
-          color="red"
         />
 
         <ResumeListCard
           title="Missing Keywords"
           icon={Target}
           items={analysis.missingKeywords}
-          color="yellow"
         />
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+      <SectionCard
+        title="Detailed Resume Report"
+        description="Review summary, improvements, and improved bullet points."
+        icon={Lightbulb}
+      >
         <div className="mb-6 flex flex-wrap gap-3">
           {[
             ["overview", "Overview"],
@@ -197,12 +184,7 @@ const ResumeAnalysisDetails = () => {
           <div className="space-y-3">
             {analysis.improvements?.length > 0 ? (
               analysis.improvements.map((item, index) => (
-                <div
-                  key={index}
-                  className="rounded-xl bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-300"
-                >
-                  {item}
-                </div>
+                <ReportItem key={index}>{item}</ReportItem>
               ))
             ) : (
               <MiniEmptyState
@@ -217,12 +199,7 @@ const ResumeAnalysisDetails = () => {
           <div className="space-y-3">
             {analysis.improvedBullets?.length > 0 ? (
               analysis.improvedBullets.map((bullet, index) => (
-                <div
-                  key={index}
-                  className="rounded-xl bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-300"
-                >
-                  {bullet}
-                </div>
+                <ReportItem key={index}>{bullet}</ReportItem>
               ))
             ) : (
               <MiniEmptyState
@@ -232,7 +209,7 @@ const ResumeAnalysisDetails = () => {
             )}
           </div>
         )}
-      </section>
+      </SectionCard>
     </AppLayout>
   );
 };
@@ -246,23 +223,10 @@ const InfoBox = ({ label, value }) => {
   );
 };
 
-const ResumeListCard = ({ title, icon: Icon, items = [], color }) => {
-  const colorClass =
-    color === "green"
-      ? "text-green-300 bg-green-500/10"
-      : color === "red"
-      ? "text-red-300 bg-red-500/10"
-      : "text-yellow-300 bg-yellow-500/10";
-
+const ResumeListCard = ({ title, icon: Icon, items = [] }) => {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <div className={`mb-4 w-fit rounded-xl p-3 ${colorClass}`}>
-        <Icon size={22} />
-      </div>
-
-      <h2 className="text-xl font-semibold">{title}</h2>
-
-      <div className="mt-4 flex flex-wrap gap-2">
+    <SectionCard title={title} icon={Icon}>
+      <div className="flex flex-wrap gap-2">
         {items?.length > 0 ? (
           items.map((item, index) => (
             <span
@@ -276,6 +240,14 @@ const ResumeListCard = ({ title, icon: Icon, items = [], color }) => {
           <p className="text-sm text-slate-400">No data available.</p>
         )}
       </div>
+    </SectionCard>
+  );
+};
+
+const ReportItem = ({ children }) => {
+  return (
+    <div className="rounded-xl bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-300">
+      {children}
     </div>
   );
 };
