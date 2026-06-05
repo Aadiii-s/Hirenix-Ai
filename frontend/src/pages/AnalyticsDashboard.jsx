@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   BarChart3,
   BookOpen,
   Brain,
@@ -18,6 +17,9 @@ import { getAnalyticsOverviewApi } from "../api/analytics.api";
 import AppLayout from "../components/AppLayout";
 import LoadingState from "../components/LoadingState";
 import ErrorState from "../components/ErrorState";
+import PageHeader from "../components/PageHeader"
+import SectionCard from "../components/SectionCard";
+import StatCard from "../components/StatCard";
 
 const AnalyticsDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
@@ -73,67 +75,47 @@ const AnalyticsDashboard = () => {
 
   return (
     <AppLayout>
-      <div className="mb-8">
-        <Link
-          to="/dashboard"
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"
-        >
-          <ArrowLeft size={16} />
-          Back to dashboard
-        </Link>
-
-        <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-blue-500/10 p-4 text-blue-300">
-            <BarChart3 size={30} />
-          </div>
-
-          <div>
-            <p className="font-medium text-blue-400">Global Analytics</p>
-            <h1 className="text-4xl font-bold">
-              Preparation Analytics Dashboard
-            </h1>
-          </div>
-        </div>
-
-        <p className="mt-4 max-w-3xl text-slate-400">
-          Complete overview of your placement preparation across profile,
-          roadmap, resume, DSA, interviews, skill gaps, and company-wise
-          preparation.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Global Analytics"
+        title="Preparation Analytics Dashboard"
+        description="Complete overview of your placement preparation across profile, roadmap, resume, DSA, interviews, skill gaps, and company-wise preparation."
+        icon={BarChart3}
+        backPath="/dashboard"
+        backLabel="Back to dashboard"
+      />
 
       <section className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-6">
-        <AnalyticsStatCard
+        <StatCard
           title="Profile"
           value={`${analytics.summary.profileScore || 0}%`}
           icon={Target}
         />
 
-        <AnalyticsStatCard
+        <StatCard
           title="Roadmap"
           value={`${analytics.summary.roadmapProgress || 0}%`}
           icon={Route}
         />
 
-        <AnalyticsStatCard
+        <StatCard
           title="Resume"
           value={`${analytics.summary.resumeScore || 0}/100`}
           icon={FileText}
         />
 
-        <AnalyticsStatCard
+        <StatCard
           title="DSA"
           value={`${analytics.summary.dsaCompletionPercentage || 0}%`}
           icon={BookOpen}
         />
 
-        <AnalyticsStatCard
+        <StatCard
           title="Interview"
           value={`${analytics.summary.averageInterviewScore || 0}%`}
           icon={Brain}
         />
 
-        <AnalyticsStatCard
+        <StatCard
           title="Companies"
           value={`${analytics.summary.averageCompanyProgress || 0}%`}
           icon={Building2}
@@ -141,39 +123,24 @@ const AnalyticsDashboard = () => {
       </section>
 
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
-              <TrendingUp size={22} />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold">Module Performance</h2>
-              <p className="text-sm text-slate-400">
-                Score across all preparation modules
-              </p>
-            </div>
-          </div>
-
+        <SectionCard
+          title="Module Performance"
+          description="Score across all preparation modules"
+          icon={TrendingUp}
+          className="xl:col-span-2"
+        >
           <div className="space-y-5">
             {analytics.moduleScores?.map((module) => (
               <ModuleScoreRow key={module.module} module={module} />
             ))}
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="rounded-xl bg-red-500/10 p-3 text-red-300">
-              <Zap size={22} />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold">Weak Areas</h2>
-              <p className="text-sm text-slate-400">Improve these first</p>
-            </div>
-          </div>
-
+        <SectionCard
+          title="Weak Areas"
+          description="Improve these first"
+          icon={Zap}
+        >
           {analytics.weakAreas?.length > 0 ? (
             <div className="flex flex-wrap gap-2">
               {analytics.weakAreas.map((area) => (
@@ -186,28 +153,18 @@ const AnalyticsDashboard = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-400">
-              No major weak areas detected.
-            </p>
+            <p className="text-sm text-slate-400">No major weak areas detected.</p>
           )}
-        </div>
+        </SectionCard>
       </section>
 
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
-          <div className="mb-6 flex items-center gap-3">
-            <div className="rounded-xl bg-green-500/10 p-3 text-green-300">
-              <CheckCircle2 size={22} />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold">Quick Actions</h2>
-              <p className="text-sm text-slate-400">
-                Recommended next steps from your preparation data
-              </p>
-            </div>
-          </div>
-
+        <SectionCard
+          title="Quick Actions"
+          description="Recommended next steps from your preparation data"
+          icon={CheckCircle2}
+          className="xl:col-span-2"
+        >
           {analytics.quickActions?.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {analytics.quickActions.map((action) => (
@@ -219,22 +176,13 @@ const AnalyticsDashboard = () => {
               No quick actions right now. Continue your daily preparation.
             </div>
           )}
-        </div>
+        </SectionCard>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-          <div className="mb-5 flex items-center gap-3">
-            <div className="rounded-xl bg-purple-500/10 p-3 text-purple-300">
-              <Target size={22} />
-            </div>
-
-            <div>
-              <h2 className="text-xl font-semibold">Skill Gap Focus</h2>
-              <p className="text-sm text-slate-400">
-                Focus areas from latest analysis
-              </p>
-            </div>
-          </div>
-
+        <SectionCard
+          title="Skill Gap Focus"
+          description="Focus areas from latest analysis"
+          icon={Target}
+        >
           {analytics.skillGap ? (
             <>
               <p className="text-sm leading-6 text-slate-300">
@@ -270,8 +218,7 @@ const AnalyticsDashboard = () => {
           ) : (
             <>
               <p className="text-sm leading-6 text-slate-300">
-                Generate a skill gap analysis to see missing skills and focus
-                areas.
+                Generate a skill gap analysis to see missing skills and focus areas.
               </p>
 
               <Link
@@ -282,7 +229,7 @@ const AnalyticsDashboard = () => {
               </Link>
             </>
           )}
-        </div>
+        </SectionCard>
       </section>
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -294,28 +241,16 @@ const AnalyticsDashboard = () => {
   );
 };
 
-const AnalyticsStatCard = ({ title, value, icon: Icon }) => {
-  return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
-      <div className="mb-3 w-fit rounded-xl bg-blue-500/10 p-3 text-blue-300">
-        <Icon size={22} />
-      </div>
-
-      <p className="text-sm text-slate-400">{title}</p>
-      <h2 className="mt-2 text-2xl font-bold">{value}</h2>
-    </div>
-  );
-};
 
 const ModuleScoreRow = ({ module }) => {
   const levelClass =
     module.level === "strong"
       ? "bg-green-500/10 text-green-300"
       : module.level === "good"
-      ? "bg-blue-500/10 text-blue-300"
-      : module.level === "average"
-      ? "bg-yellow-500/10 text-yellow-300"
-      : "bg-red-500/10 text-red-300";
+        ? "bg-blue-500/10 text-blue-300"
+        : module.level === "average"
+          ? "bg-yellow-500/10 text-yellow-300"
+          : "bg-red-500/10 text-red-300";
 
   return (
     <div className="rounded-2xl bg-slate-950 p-4">
@@ -354,8 +289,8 @@ const QuickActionCard = ({ action }) => {
     action.priority === "high"
       ? "bg-red-500/10 text-red-300"
       : action.priority === "medium"
-      ? "bg-yellow-500/10 text-yellow-300"
-      : "bg-green-500/10 text-green-300";
+        ? "bg-yellow-500/10 text-yellow-300"
+        : "bg-green-500/10 text-green-300";
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-950 p-5">
@@ -384,16 +319,13 @@ const QuickActionCard = ({ action }) => {
 const DsaAnalyticsCard = ({ dsaStats }) => {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
-          <BookOpen size={22} />
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold">DSA Analytics</h2>
-          <p className="text-sm text-slate-400">Coding progress overview</p>
-        </div>
-      </div>
+      <SectionCard
+        title="DSA Analytics"
+        description="Coding progress overview"
+        icon={BookOpen}
+      >
+        ...
+      </SectionCard>
 
       <div className="space-y-3 text-sm text-slate-300">
         <InfoRow label="Total Questions" value={dsaStats?.totalQuestions || 0} />
@@ -431,16 +363,13 @@ const DsaAnalyticsCard = ({ dsaStats }) => {
 const InterviewAnalyticsCard = ({ interviewStats }) => {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="rounded-xl bg-purple-500/10 p-3 text-purple-300">
-          <Brain size={22} />
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold">Interview Analytics</h2>
-          <p className="text-sm text-slate-400">Mock interview performance</p>
-        </div>
-      </div>
+      <SectionCard
+        title="Interview Analytics"
+        description="Mock interview performance"
+        icon={Brain}
+      >
+        ...
+      </SectionCard>
 
       <div className="space-y-3 text-sm text-slate-300">
         <InfoRow
@@ -479,16 +408,13 @@ const InterviewAnalyticsCard = ({ interviewStats }) => {
 const CompanyAnalyticsCard = ({ companyStats }) => {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="rounded-xl bg-green-500/10 p-3 text-green-300">
-          <Building2 size={22} />
-        </div>
-
-        <div>
-          <h2 className="text-xl font-semibold">Company Analytics</h2>
-          <p className="text-sm text-slate-400">Target company progress</p>
-        </div>
-      </div>
+      <SectionCard
+        title="Company Analytics"
+        description="Target company progress"
+        icon={Building2}
+      >
+        ...
+      </SectionCard>
 
       <div className="space-y-3 text-sm text-slate-300">
         <InfoRow

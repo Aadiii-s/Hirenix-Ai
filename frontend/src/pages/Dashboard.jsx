@@ -22,6 +22,8 @@ import { getLatestSkillGapAnalysisApi } from "../api/skillGap.api";
 import AppLayout from "../components/AppLayout";
 import DashboardCard from "../components/DashboardCard";
 import ModuleCard from "../components/ModuleCard";
+import PageHeader from "../components/PageHeader";
+import SectionCard from "../components/SectionCard";
 import { useAuth } from "../context/AuthContext";
 
 const Dashboard = () => {
@@ -208,26 +210,21 @@ const Dashboard = () => {
 
   return (
     <AppLayout>
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="mb-2 font-medium text-blue-400">
-            Welcome back, {user?.fullName}
-          </p>
-
-          <h1 className="text-4xl font-bold">Placement Dashboard</h1>
-
-          <p className="mt-2 text-slate-400">
-            Your complete command center for placement preparation.
-          </p>
-        </div>
-
-        <Link
-          to={user?.isProfileCompleted ? "/profile" : "/edit-profile"}
-          className="rounded-xl bg-blue-600 px-5 py-3 text-center font-semibold hover:bg-blue-700"
-        >
-          {user?.isProfileCompleted ? "View Profile" : "Complete Profile"}
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow={`Welcome back, ${user?.fullName || "User"}`}
+        title="Placement Dashboard"
+        description="Your complete command center for placement preparation."
+        icon={Trophy}
+        backPath={null}
+        action={
+          <Link
+            to={user?.isProfileCompleted ? "/profile" : "/edit-profile"}
+            className="rounded-xl bg-blue-600 px-5 py-3 text-center font-semibold hover:bg-blue-700"
+          >
+            {user?.isProfileCompleted ? "View Profile" : "Complete Profile"}
+          </Link>
+        }
+      />
 
       <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         <DashboardCard
@@ -292,58 +289,45 @@ const Dashboard = () => {
       </section>
 
       <section className="mt-8 grid grid-cols-1 gap-5 xl:grid-cols-3">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 xl:col-span-2">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold">Preparation Modules</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Start with profile setup, then use AI roadmap, resume analyzer,
-                DSA tracker, mock interview, skill gap, company tracker, and
-                analytics.
-              </p>
+        <div className="space-y-5 xl:col-span-2">
+          <SectionCard
+            title="Preparation Modules"
+            description="Start with profile setup, then use AI roadmap, resume analyzer, DSA tracker, mock interview, skill gap, company tracker, and analytics."
+            icon={Target}
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {modules.map((module) => (
+                <ModuleCard
+                  key={module.title}
+                  title={module.title}
+                  description={module.description}
+                  icon={module.icon}
+                  status={module.status}
+                  locked={module.locked}
+                  buttonText="Start Module"
+                  path={module.path}
+                />
+              ))}
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {modules.map((module) => (
-              <ModuleCard
-                key={module.title}
-                title={module.title}
-                description={module.description}
-                icon={module.icon}
-                status={module.status}
-                locked={module.locked}
-                buttonText="Start Module"
-                path={module.path}
-              />
-            ))}
-          </div>
-
-          <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-6">
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-orange-500/10 p-3 text-orange-300">
-                  <Trophy size={22} />
-                </div>
-
-                <div>
-                  <h2 className="text-xl font-semibold">Readiness Breakdown</h2>
-                  <p className="text-sm text-slate-400">
-                    Weighted placement score
-                  </p>
-                </div>
-              </div>
-
+          <SectionCard
+            title="Readiness Breakdown"
+            description="Weighted placement score"
+            icon={Trophy}
+            action={
               <Link
                 to="/readiness"
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold hover:bg-blue-700"
               >
                 Full Report
               </Link>
-            </div>
-
+            }
+          >
             {readinessLoading ? (
-              <p className="text-sm text-slate-400">Calculating readiness...</p>
+              <p className="text-sm text-slate-400">
+                Calculating readiness...
+              </p>
             ) : readiness ? (
               <div className="space-y-4">
                 <BreakdownRow
@@ -404,22 +388,13 @@ const Dashboard = () => {
             ) : (
               <p className="text-slate-400">No readiness data available.</p>
             )}
-          </div>
+          </SectionCard>
 
-          <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950 p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-xl bg-green-500/10 p-3 text-green-300">
-                <CheckCircle2 size={22} />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold">AI Recommendations</h2>
-                <p className="text-sm text-slate-400">
-                  Based on your current progress
-                </p>
-              </div>
-            </div>
-
+          <SectionCard
+            title="AI Recommendations"
+            description="Based on your current progress"
+            icon={CheckCircle2}
+          >
             {readinessLoading ? (
               <p className="text-sm text-slate-400">
                 Loading recommendations...
@@ -429,7 +404,7 @@ const Dashboard = () => {
                 {readiness.recommendations.map((item, index) => (
                   <li
                     key={index}
-                    className="rounded-xl bg-slate-900 px-4 py-3 text-sm leading-6 text-slate-300"
+                    className="rounded-xl bg-slate-950 px-4 py-3 text-sm leading-6 text-slate-300"
                   >
                     {item}
                   </li>
@@ -440,24 +415,19 @@ const Dashboard = () => {
                 No recommendations available yet.
               </p>
             )}
-          </div>
+          </SectionCard>
         </div>
 
         <div className="space-y-5">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-xl bg-blue-500/10 p-3 text-blue-300">
-                <Route size={22} />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold">Latest Roadmap</h2>
-                <p className="text-sm text-slate-400">Continue your plan</p>
-              </div>
-            </div>
-
+          <SectionCard
+            title="Latest Roadmap"
+            description="Continue your plan"
+            icon={Route}
+          >
             {roadmapLoading ? (
-              <p className="text-sm text-slate-400">Loading latest roadmap...</p>
+              <p className="text-sm text-slate-400">
+                Loading latest roadmap...
+              </p>
             ) : latestRoadmap ? (
               <>
                 <h3 className="text-lg font-semibold">
@@ -526,22 +496,13 @@ const Dashboard = () => {
                 </Link>
               </>
             )}
-          </div>
+          </SectionCard>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-xl bg-purple-500/10 p-3 text-purple-300">
-                <Brain size={22} />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold">Skill Gap Focus</h2>
-                <p className="text-sm text-slate-400">
-                  Your latest missing skills
-                </p>
-              </div>
-            </div>
-
+          <SectionCard
+            title="Skill Gap Focus"
+            description="Your latest missing skills"
+            icon={Brain}
+          >
             {skillGapLoading ? (
               <p className="text-sm text-slate-400">
                 Loading skill gap analysis...
@@ -549,7 +510,8 @@ const Dashboard = () => {
             ) : latestSkillGap ? (
               <>
                 <p className="text-sm leading-6 text-slate-300">
-                  {latestSkillGap.summary || "Latest skill gap report is ready."}
+                  {latestSkillGap.summary ||
+                    "Latest skill gap report is ready."}
                 </p>
 
                 {latestSkillGap.topThreeFocusAreas?.length > 0 && (
@@ -578,14 +540,16 @@ const Dashboard = () => {
                     </p>
 
                     <div className="flex flex-wrap gap-2">
-                      {latestSkillGap.missingSkills.slice(0, 4).map((skill) => (
-                        <span
-                          key={skill}
-                          className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-300"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                      {latestSkillGap.missingSkills
+                        .slice(0, 4)
+                        .map((skill) => (
+                          <span
+                            key={skill}
+                            className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-300"
+                          >
+                            {skill}
+                          </span>
+                        ))}
                     </div>
                   </div>
                 )}
@@ -612,22 +576,13 @@ const Dashboard = () => {
                 </Link>
               </>
             )}
-          </div>
+          </SectionCard>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-xl bg-green-500/10 p-3 text-green-300">
-                <CheckCircle2 size={22} />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold">Today's Priority</h2>
-                <p className="text-sm text-slate-400">
-                  Recommended next action
-                </p>
-              </div>
-            </div>
-
+          <SectionCard
+            title="Today's Priority"
+            description="Recommended next action"
+            icon={CheckCircle2}
+          >
             {readinessLoading ? (
               <p className="text-slate-300">
                 Finding your next best action...
@@ -651,20 +606,13 @@ const Dashboard = () => {
                 </Link>
               </>
             )}
-          </div>
+          </SectionCard>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-xl bg-purple-500/10 p-3 text-purple-300">
-                <Target size={22} />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold">Target Summary</h2>
-                <p className="text-sm text-slate-400">Your placement goal</p>
-              </div>
-            </div>
-
+          <SectionCard
+            title="Target Summary"
+            description="Your placement goal"
+            icon={Target}
+          >
             <div className="space-y-4 text-sm">
               <div>
                 <p className="text-slate-500">Target Role</p>
@@ -692,22 +640,13 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </SectionCard>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <div className="rounded-xl bg-orange-500/10 p-3 text-orange-300">
-                <BarChart3 size={22} />
-              </div>
-
-              <div>
-                <h2 className="text-xl font-semibold">Scoring Formula</h2>
-                <p className="text-sm text-slate-400">
-                  How readiness is calculated
-                </p>
-              </div>
-            </div>
-
+          <SectionCard
+            title="Scoring Formula"
+            description="How readiness is calculated"
+            icon={BarChart3}
+          >
             <div className="space-y-3 text-sm text-slate-300">
               <FormulaRow label="Profile Strength" value="15%" />
               <FormulaRow label="Roadmap Progress" value="15%" />
@@ -716,7 +655,7 @@ const Dashboard = () => {
               <FormulaRow label="Mock Interview" value="20%" />
               <FormulaRow label="Consistency" value="10%" />
             </div>
-          </div>
+          </SectionCard>
         </div>
       </section>
     </AppLayout>
