@@ -30,117 +30,6 @@ const allowedInterviewTypes = [
 
 const allowedDifficulties = ["easy", "medium", "hard"];
 
-const getFallbackQuestions = ({
-  interviewType,
-  difficulty,
-  numberOfQuestions,
-}) => {
-  const fallbackQuestions = [
-    {
-      question: "Tell me about yourself.",
-      category: "hr",
-      expectedAnswerPoints: [
-        "Brief introduction",
-        "Education background",
-        "Technical skills",
-        "Career goal",
-      ],
-    },
-    {
-      question: "Explain one strong project from your resume in detail.",
-      category: "project",
-      expectedAnswerPoints: [
-        "Problem statement",
-        "Tech stack",
-        "Your contribution",
-        "Impact or learning",
-      ],
-    },
-    {
-      question: "How do you approach solving a DSA problem in interviews?",
-      category: "dsa",
-      expectedAnswerPoints: [
-        "Understand the problem",
-        "Start with brute force",
-        "Optimize step by step",
-        "Explain time and space complexity",
-      ],
-    },
-    {
-      question: "Explain authentication and authorization.",
-      category: "mern",
-      expectedAnswerPoints: [
-        "Authentication meaning",
-        "Authorization meaning",
-        "JWT/session example",
-      ],
-    },
-    {
-      question: "Why should we hire you?",
-      category: "hr",
-      expectedAnswerPoints: [
-        "Relevant skills",
-        "Learning mindset",
-        "Project experience",
-        "Teamwork",
-      ],
-    },
-    {
-      question: "Describe a difficult situation and how you handled it.",
-      category: "behavioral",
-      expectedAnswerPoints: ["Situation", "Task", "Action", "Result"],
-    },
-    {
-      question: "What are your strengths and weaknesses?",
-      category: "hr",
-      expectedAnswerPoints: [
-        "Real strength",
-        "Improvement area",
-        "How you are improving",
-      ],
-    },
-    {
-      question: "Explain REST API and common HTTP methods.",
-      category: "mern",
-      expectedAnswerPoints: [
-        "REST meaning",
-        "GET POST PUT PATCH DELETE",
-        "Client-server communication",
-      ],
-    },
-    {
-      question: "What is the difference between SQL and NoSQL databases?",
-      category: "mern",
-      expectedAnswerPoints: [
-        "Structure",
-        "Schema",
-        "Use cases",
-        "Examples",
-      ],
-    },
-    {
-      question: "Explain time complexity and why it matters.",
-      category: "dsa",
-      expectedAnswerPoints: [
-        "Efficiency",
-        "Big-O notation",
-        "Scalability",
-      ],
-    },
-  ];
-
-  return fallbackQuestions.slice(0, numberOfQuestions).map((item) => ({
-    question: item.question,
-    category: interviewType === "mixed" ? item.category : interviewType,
-    difficulty,
-    expectedAnswerPoints: item.expectedAnswerPoints,
-    userAnswer: "",
-    feedback: "",
-    idealAnswer: "",
-    score: 0,
-    isAnswered: false,
-  }));
-};
 
 const normalizeGeneratedQuestions = ({
   parsedQuestions,
@@ -225,11 +114,10 @@ export const startMockInterview = asyncHandler(async (req, res) => {
   } catch (error) {
     console.log("Interview question generation failed:", error.message);
 
-    questions = getFallbackQuestions({
-      interviewType: normalizedInterviewType,
-      difficulty: normalizedDifficulty,
-      numberOfQuestions: safeNumberOfQuestions,
-    });
+    throw new ApiError(
+      503,
+      "AI interview question generation failed. Please try again after some time."
+    );
   }
 
   const mockInterview = await MockInterview.create({
@@ -309,15 +197,10 @@ export const submitInterviewAnswer = asyncHandler(async (req, res) => {
   } catch (error) {
     console.log("Answer evaluation failed:", error.message);
 
-    parsedEvaluation = {
-      score: 6,
-      feedback:
-        "Good attempt. Improve your answer by adding structure, examples, and measurable impact.",
-      strengths: ["Attempted the answer"],
-      improvements: ["Add more structure", "Use examples"],
-      idealAnswer:
-        "A strong answer should directly answer the question, include examples, and explain the impact clearly.",
-    };
+    throw new ApiError(
+      503,
+      "AI answer evaluation failed. Please try again after some time."
+    );
   }
 
   question.userAnswer = answer.trim();
@@ -391,27 +274,16 @@ export const completeMockInterview = asyncHandler(async (req, res) => {
   let parsedSummary = {};
 
   try {
-    const aiText = await generateAIContent(prompt);
-    parsedSummary = parseAIJsonResponse(aiText) || {};
-  } catch (error) {
-    console.log("Interview summary generation failed:", error.message);
+  const aiText = await generateAIContent(prompt);
+  parsedSummary = parseAIJsonResponse(aiText) || {};
+} catch (error) {
+  console.log("Interview summary generation failed:", error.message);
 
-    parsedSummary = {
-      overallFeedback:
-        overallScore >= 70
-          ? "Good performance. Keep improving answer structure and examples."
-          : "You need more practice. Focus on clarity, structure, and confidence.",
-      strengths:
-        overallScore >= 70
-          ? ["Relevant answers", "Good attempt"]
-          : ["Completed the interview"],
-      improvements: [
-        "Use structured answers",
-        "Add examples",
-        "Improve technical depth",
-      ],
-    };
-  }
+  throw new ApiError(
+    503,
+    "AI interview summary generation failed. Please try again after some time."
+  );
+}
 
   interview.overallScore = overallScore;
   interview.overallFeedback =
@@ -535,11 +407,11 @@ export const getMockInterviewStats = asyncHandler(async (req, res) => {
     completedList.length === 0
       ? 0
       : Math.round(
-          completedList.reduce(
-            (sum, interview) => sum + (Number(interview.overallScore) || 0),
-            0
-          ) / completedList.length
-        );
+        completedList.reduce(
+          (sum, interview) => sum + (Number(interview.overallScore) || 0),
+          0
+        ) / completedList.length
+      );
 
   const typeStats = await MockInterview.aggregate([
     {

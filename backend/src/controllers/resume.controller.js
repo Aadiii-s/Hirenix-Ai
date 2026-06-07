@@ -35,35 +35,6 @@ const safeNumber = (value, fallback = 0) => {
   return Number.isFinite(number) ? number : fallback;
 };
 
-const getFallbackResumeAnalysis = () => {
-  return {
-    atsScore: 55,
-    summary:
-      "Resume analysis completed with fallback response. Improve keywords, project impact, and measurable achievements.",
-    strengths: ["Resume uploaded successfully", "Basic resume content detected"],
-    weaknesses: [
-      "Needs stronger role-specific keywords",
-      "Needs more measurable project impact",
-    ],
-    missingKeywords: ["DSA", "System Design", "React", "Node.js", "MongoDB"],
-    improvedBullets: [
-      "Built a full-stack application using React, Node.js, Express.js, and MongoDB with authentication and protected routes.",
-      "Improved project quality by adding clean UI, API integration, validation, and error handling.",
-    ],
-    projectSuggestions: [
-      "Add measurable impact for every project.",
-      "Mention tech stack, features, challenges, and results clearly.",
-    ],
-    skillsSuggestions: [
-      "Add role-specific technical skills.",
-      "Group skills into languages, frontend, backend, database, tools, and concepts.",
-    ],
-    finalSuggestions: [
-      "Use action verbs and numbers in bullet points.",
-      "Optimize resume for target role keywords.",
-    ],
-  };
-};
 
 export const analyzeResume = asyncHandler(async (req, res) => {
   if (!req.file) {
@@ -107,13 +78,16 @@ export const analyzeResume = asyncHandler(async (req, res) => {
     let parsedAnalysis = {};
 
     try {
-      aiText = await generateAIContent(prompt);
-      parsedAnalysis = parseAIJsonResponse(aiText) || {};
-    } catch (error) {
-      console.log("Resume AI analysis failed:", error.message);
-      parsedAnalysis = getFallbackResumeAnalysis();
-      aiText = JSON.stringify(parsedAnalysis);
-    }
+  aiText = await generateAIContent(prompt);
+  parsedAnalysis = parseAIJsonResponse(aiText) || {};
+} catch (error) {
+  console.log("Resume AI analysis failed:", error.message);
+
+  throw new ApiError(
+    503,
+    "AI resume analysis failed. Please try again after some time."
+  );
+}
 
     const analysis = await ResumeAnalysis.create({
       user: user._id,

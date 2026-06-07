@@ -43,64 +43,6 @@ const normalizeRoadmapDays = (dailyPlan = [], durationInDays) => {
   });
 };
 
-const getFallbackRoadmap = ({
-  targetRole,
-  durationInDays,
-  currentLevel,
-  skills,
-  weakAreas,
-}) => {
-  const dailyPlan = Array.from({ length: durationInDays }, (_, index) => {
-    const day = index + 1;
-
-    return {
-      day,
-      title: `Day ${day}: ${targetRole} Preparation`,
-      description: `Focus on ${targetRole} preparation based on your ${currentLevel} level.`,
-      tasks: [
-        "Revise one core concept",
-        "Practice coding or technical questions",
-        "Update notes with mistakes and learnings",
-      ],
-      resources: [
-        "Official documentation",
-        "DSA practice platform",
-        "Project notes",
-      ],
-      practice: [
-        "Solve 2-3 related problems",
-        "Explain one topic aloud like an interview answer",
-      ],
-      outcome: "You should complete one focused preparation block today.",
-    };
-  });
-
-  return {
-    title: `${durationInDays}-Day ${targetRole} Placement Roadmap`,
-    dailyPlan,
-    weeklyMilestones: [
-      {
-        week: 1,
-        milestone: "Build consistency and cover fundamentals.",
-      },
-    ],
-    recommendedResources: [
-      "LeetCode",
-      "GeeksforGeeks",
-      "MDN Docs",
-      "React Docs",
-      "Node.js Docs",
-    ],
-    aiSuggestions: [
-      "Follow the roadmap daily.",
-      "Track DSA and interview progress.",
-      "Revise weak areas every weekend.",
-      ...(weakAreas?.length ? weakAreas.map((area) => `Improve ${area}.`) : []),
-      ...(skills?.length ? [`Use your existing skills: ${skills.join(", ")}.`] : []),
-    ],
-  };
-};
-
 export const generateRoadmap = asyncHandler(async (req, res) => {
   const targetRole = requiredString(req.body.targetRole, "Target role");
 
@@ -152,36 +94,27 @@ export const generateRoadmap = asyncHandler(async (req, res) => {
   } catch (error) {
     console.log("Roadmap AI generation failed:", error.message);
 
-    parsedRoadmap = getFallbackRoadmap({
-      targetRole,
-      durationInDays,
-      currentLevel,
-      skills: finalSkills,
-      weakAreas,
-    });
-
-    aiText = JSON.stringify(parsedRoadmap);
+    throw new ApiError(
+      503,
+      "AI roadmap generation failed. Please try again after some time."
+    );
   }
 
-  const dailyPlan = normalizeRoadmapDays(
-    parsedRoadmap.dailyPlan ||
-      parsedRoadmap.days ||
-      parsedRoadmap.roadmapDays ||
-      parsedRoadmap.plan ||
-      [],
-    durationInDays
-  );
+  const finalDailyPlan = normalizeRoadmapDays(
+  parsedRoadmap.dailyPlan ||
+    parsedRoadmap.days ||
+    parsedRoadmap.roadmapDays ||
+    parsedRoadmap.plan ||
+    [],
+  durationInDays
+);
 
-  const finalDailyPlan =
-    dailyPlan.length > 0
-      ? dailyPlan
-      : getFallbackRoadmap({
-          targetRole,
-          durationInDays,
-          currentLevel,
-          skills: finalSkills,
-          weakAreas,
-        }).dailyPlan;
+if (!finalDailyPlan.length) {
+  throw new ApiError(
+    502,
+    "AI roadmap response did not contain a valid daily plan. Please try again."
+  );
+}
 
   const roadmap = await Roadmap.create({
     user: user._id,
