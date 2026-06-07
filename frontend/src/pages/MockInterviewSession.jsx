@@ -199,7 +199,7 @@ const MockInterviewSession = () => {
               <button
                 onClick={handleSubmitAnswer}
                 disabled={answerLoading}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700 disabled:opacity-70"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700 disabled:opacity-70 cursor-pointer"
               >
                 <Send size={18} />
                 {answerLoading ? "Evaluating..." : "Submit Answer"}

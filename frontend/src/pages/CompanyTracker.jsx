@@ -236,7 +236,7 @@ const CompanyTracker = () => {
         action={
           <button
             onClick={() => setShowForm(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700 cursor-pointer" 
           >
             <Plus size={18} />
             Add Company
@@ -360,7 +360,7 @@ const CompanyTracker = () => {
       {showForm && (
         <SectionCard
           className="mb-6"
-          title={editingCompanyId ? "Edit Target Company" : "Add Target Company"}
+          title = "Add Target Company"
           description="Add company details, preparation focus, tasks, and notes."
           icon={Building2}
           action={
@@ -461,7 +461,7 @@ const CompanyTracker = () => {
 
             <button
               disabled={creating}
-              className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
             >
               {creating ? "Creating..." : "Create Company Tracker"}
             </button>
@@ -590,7 +590,7 @@ const CompanyCard = ({
         <button
           onClick={() => onDelete(company._id)}
           disabled={deletingId === company._id}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 hover:bg-red-500/10 disabled:opacity-60 cursor-pointer"
         >
           <Trash2 size={16} />
           {deletingId === company._id ? "..." : "Delete"}

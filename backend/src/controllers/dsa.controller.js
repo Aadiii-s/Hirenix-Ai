@@ -1,42 +1,79 @@
-import mongoose from "mongoose";
-
 import DsaQuestion from "../models/dsaQuestion.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import {asyncHandler} from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { validateMongoId } from "../utils/validateMongoId.js";
+import {
+  requiredString,
+  normalizeEnum,
+  normalizeArray,
+} from "../utils/validators.js";
+
+const allowedPlatforms = [
+  "leetcode",
+  "gfg",
+  "codeforces",
+  "codechef",
+  "hackerrank",
+  "other",
+];
+
+const allowedDifficulties = ["easy", "medium", "hard"];
+
+const allowedStatuses = [
+  "not_started",
+  "in_progress",
+  "solved",
+  "revision",
+];
+
+const escapeRegex = (text = "") => {
+  return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+const getQuestionUrl = (body) => {
+  return body.questionUrl || body.problemUrl || "";
+};
 
 export const createDsaQuestion = asyncHandler(async (req, res) => {
-  const {
-    title,
-    platform,
-    questionUrl,
-    topic,
-    difficulty,
-    status,
-    notes,
-    approach,
-    timeComplexity,
-    spaceComplexity,
-    tags,
-  } = req.body;
+  const title = requiredString(req.body.title, "Question title");
+  const topic = requiredString(req.body.topic, "Topic");
 
-  if (!title || !topic || !difficulty) {
-    throw new ApiError(400, "Title, topic, and difficulty are required");
-  }
+  const platform = normalizeEnum(
+    req.body.platform,
+    allowedPlatforms,
+    "platform",
+    "leetcode"
+  );
+
+  const difficulty = normalizeEnum(
+    req.body.difficulty,
+    allowedDifficulties,
+    "difficulty",
+    "medium"
+  );
+
+  const status = normalizeEnum(
+    req.body.status,
+    allowedStatuses,
+    "status",
+    "not_started"
+  );
 
   const question = await DsaQuestion.create({
     user: req.user._id,
     title,
     platform,
-    questionUrl,
+    questionUrl: getQuestionUrl(req.body),
+    problemUrl: getQuestionUrl(req.body),
     topic,
     difficulty,
     status,
-    notes,
-    approach,
-    timeComplexity,
-    spaceComplexity,
-    tags: Array.isArray(tags) ? tags : [],
+    notes: req.body.notes || "",
+    approach: req.body.approach || "",
+    timeComplexity: req.body.timeComplexity || "",
+    spaceComplexity: req.body.spaceComplexity || "",
+    tags: normalizeArray(req.body.tags),
     solvedAt: status === "solved" ? new Date() : null,
   });
 
@@ -61,34 +98,66 @@ export const getMyDsaQuestions = asyncHandler(async (req, res) => {
   };
 
   if (topic) {
-    filter.topic = new RegExp(topic, "i");
+    filter.topic = new RegExp(escapeRegex(topic), "i");
   }
 
   if (difficulty) {
-    filter.difficulty = difficulty;
+    filter.difficulty = normalizeEnum(
+      difficulty,
+      allowedDifficulties,
+      "difficulty",
+      "medium"
+    );
   }
 
   if (status) {
-    filter.status = status;
+    filter.status = normalizeEnum(
+      status,
+      allowedStatuses,
+      "status",
+      "not_started"
+    );
   }
 
   if (platform) {
-    filter.platform = platform;
+    filter.platform = normalizeEnum(
+      platform,
+      allowedPlatforms,
+      "platform",
+      "leetcode"
+    );
   }
 
   if (search) {
+    const safeSearch = escapeRegex(search);
+
     filter.$or = [
-      { title: new RegExp(search, "i") },
-      { topic: new RegExp(search, "i") },
-      { notes: new RegExp(search, "i") },
-      { tags: { $in: [new RegExp(search, "i")] } },
+      { title: new RegExp(safeSearch, "i") },
+      { topic: new RegExp(safeSearch, "i") },
+      { notes: new RegExp(safeSearch, "i") },
+      { tags: { $in: [new RegExp(safeSearch, "i")] } },
     ];
   }
+
+  const allowedSortFields = [
+    "createdAt",
+    "updatedAt",
+    "title",
+    "topic",
+    "difficulty",
+    "status",
+    "platform",
+    "solvedAt",
+  ];
+
+  const safeSortBy = allowedSortFields.includes(sortBy)
+    ? sortBy
+    : "createdAt";
 
   const sortOrder = order === "asc" ? 1 : -1;
 
   const questions = await DsaQuestion.find(filter).sort({
-    [sortBy]: sortOrder,
+    [safeSortBy]: sortOrder,
   });
 
   return res
@@ -99,9 +168,7 @@ export const getMyDsaQuestions = asyncHandler(async (req, res) => {
 export const getDsaQuestionById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid DSA question id");
-  }
+  validateMongoId(id, "Invalid DSA question id");
 
   const question = await DsaQuestion.findOne({
     _id: id,
@@ -119,21 +186,15 @@ export const getDsaQuestionById = asyncHandler(async (req, res) => {
 
 export const updateDsaQuestionStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid DSA question id");
-  }
+  validateMongoId(id, "Invalid DSA question id");
 
-  if (!status) {
-    throw new ApiError(400, "Status is required");
-  }
-
-  const allowedStatuses = ["not_started", "in_progress", "solved", "revision"];
-
-  if (!allowedStatuses.includes(status)) {
-    throw new ApiError(400, "Invalid question status");
-  }
+  const status = normalizeEnum(
+    req.body.status,
+    allowedStatuses,
+    "question status",
+    "not_started"
+  );
 
   const question = await DsaQuestion.findOne({
     _id: id,
@@ -149,23 +210,19 @@ export const updateDsaQuestionStatus = asyncHandler(async (req, res) => {
 
   const updatedQuestion = await question.save();
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        updatedQuestion,
-        "DSA question status updated successfully"
-      )
-    );
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      updatedQuestion,
+      "DSA question status updated successfully"
+    )
+  );
 });
 
 export const updateDsaQuestion = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid DSA question id");
-  }
+  validateMongoId(id, "Invalid DSA question id");
 
   const question = await DsaQuestion.findOne({
     _id: id,
@@ -176,43 +233,83 @@ export const updateDsaQuestion = asyncHandler(async (req, res) => {
     throw new ApiError(404, "DSA question not found");
   }
 
-  const allowedFields = [
-    "title",
-    "platform",
-    "questionUrl",
-    "topic",
-    "difficulty",
-    "status",
-    "notes",
-    "approach",
-    "timeComplexity",
-    "spaceComplexity",
-    "tags",
-  ];
+  if (req.body.title !== undefined) {
+    question.title = requiredString(req.body.title, "Question title");
+  }
 
-  allowedFields.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      question[field] = req.body[field];
-    }
-  });
+  if (req.body.topic !== undefined) {
+    question.topic = requiredString(req.body.topic, "Topic");
+  }
+
+  if (req.body.platform !== undefined) {
+    question.platform = normalizeEnum(
+      req.body.platform,
+      allowedPlatforms,
+      "platform",
+      "leetcode"
+    );
+  }
+
+  if (req.body.difficulty !== undefined) {
+    question.difficulty = normalizeEnum(
+      req.body.difficulty,
+      allowedDifficulties,
+      "difficulty",
+      "medium"
+    );
+  }
 
   if (req.body.status !== undefined) {
-    question.solvedAt = req.body.status === "solved" ? new Date() : null;
+    const status = normalizeEnum(
+      req.body.status,
+      allowedStatuses,
+      "status",
+      "not_started"
+    );
+
+    question.status = status;
+    question.solvedAt = status === "solved" ? new Date() : null;
+  }
+
+  if (req.body.questionUrl !== undefined || req.body.problemUrl !== undefined) {
+    const url = getQuestionUrl(req.body);
+    question.questionUrl = url;
+    question.problemUrl = url;
+  }
+
+  if (req.body.notes !== undefined) {
+    question.notes = req.body.notes;
+  }
+
+  if (req.body.approach !== undefined) {
+    question.approach = req.body.approach;
+  }
+
+  if (req.body.timeComplexity !== undefined) {
+    question.timeComplexity = req.body.timeComplexity;
+  }
+
+  if (req.body.spaceComplexity !== undefined) {
+    question.spaceComplexity = req.body.spaceComplexity;
+  }
+
+  if (req.body.tags !== undefined) {
+    question.tags = normalizeArray(req.body.tags);
   }
 
   const updatedQuestion = await question.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, updatedQuestion, "DSA question updated successfully"));
+    .json(
+      new ApiResponse(200, updatedQuestion, "DSA question updated successfully")
+    );
 });
 
 export const deleteDsaQuestion = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid DSA question id");
-  }
+  validateMongoId(id, "Invalid DSA question id");
 
   const question = await DsaQuestion.findOneAndDelete({
     _id: id,

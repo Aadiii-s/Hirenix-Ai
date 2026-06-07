@@ -163,7 +163,7 @@ const SkillGapAnalyzer = () => {
 
                 <button
                   disabled={generating}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
                 >
                   <Sparkles size={18} />
                   {generating ? "Generating analysis..." : "Generate Skill Gap Analysis"}

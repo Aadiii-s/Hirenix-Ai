@@ -48,20 +48,20 @@ const MockInterview = () => {
       return;
     }
 
+    const payload = {
+      title:
+        formData.title ||
+        `${formData.targetRole} ${formData.interviewType} interview`,
+      interviewType: formData.interviewType.toLowerCase(),
+      targetRole: formData.targetRole,
+      difficulty: formData.difficulty.toLowerCase(),
+      numberOfQuestions: Number(formData.numberOfQuestions),
+      focusAreas: convertCommaTextToArray(formData.focusAreas),
+    };
+
     try {
       setLoading(true);
       setError("");
-
-      const payload = {
-        title:
-          formData.title ||
-          `${formData.targetRole} ${formData.interviewType} interview`,
-        interviewType: formData.interviewType,
-        targetRole: formData.targetRole,
-        difficulty: formData.difficulty,
-        numberOfQuestions: Number(formData.numberOfQuestions),
-        focusAreas: convertCommaTextToArray(formData.focusAreas),
-      };
 
       const response = await startMockInterviewApi(payload);
 
@@ -165,8 +165,9 @@ const MockInterview = () => {
               />
 
               <button
+                type="submit"
                 disabled={loading}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 cursor-pointer"
               >
                 <Sparkles size={18} />
                 {loading ? "Generating Interview..." : "Start AI Interview"}
@@ -186,18 +187,23 @@ const MockInterview = () => {
 
             <p className="text-sm text-slate-400">Past sessions</p>
             <h2 className="mt-1 text-xl font-semibold">Interview History</h2>
+
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              View previous interviews, continue pending sessions, and review
-              AI feedback reports.
+              View previous interviews, continue pending sessions, and review AI
+              feedback reports.
             </p>
           </Link>
 
           <SectionCard title="Interview Tips">
             <ul className="space-y-3 text-sm leading-6 text-slate-400">
               <li>Answer in structured points instead of one long paragraph.</li>
-              <li>For projects, explain problem, tech stack, features, and impact.</li>
+              <li>
+                For projects, explain problem, tech stack, features, and impact.
+              </li>
               <li>For HR answers, use STAR method where possible.</li>
-              <li>After submitting, read AI feedback and improve your next answer.</li>
+              <li>
+                After submitting, read AI feedback and improve your next answer.
+              </li>
             </ul>
           </SectionCard>
         </aside>
@@ -210,6 +216,7 @@ const Input = ({ label, ...props }) => {
   return (
     <div>
       <label className="mb-2 block text-sm text-slate-300">{label}</label>
+
       <input
         {...props}
         className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none focus:border-blue-500"

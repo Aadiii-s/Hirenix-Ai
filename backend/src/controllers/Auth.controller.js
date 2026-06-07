@@ -2,6 +2,11 @@ import User from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  requiredString,
+  normalizeEnum,
+  normalizeArray,
+} from "../utils/validators.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -9,6 +14,8 @@ const cookieOptions = {
   sameSite: "strict",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
+
+const allowedPreparationLevels = ["beginner", "intermediate", "advanced"];
 
 const sanitizeUser = (user) => {
   return {
@@ -30,12 +37,27 @@ const sanitizeUser = (user) => {
   };
 };
 
-export const registerUser = asyncHandler(async (req, res) => {
-  const { fullName, email, password } = req.body;
+const calculateProfileCompleted = (user) => {
+  const requiredFields = [
+    user.college,
+    user.branch,
+    user.graduationYear,
+    user.targetRole,
+    user.currentPreparationLevel,
+  ];
 
-  if (!fullName || !email || !password) {
-    throw new ApiError(400, "Full name, email, and password are required");
-  }
+  const hasTargetCompanies =
+    Array.isArray(user.targetCompanies) && user.targetCompanies.length > 0;
+
+  const hasSkills = Array.isArray(user.skills) && user.skills.length > 0;
+
+  return requiredFields.every(Boolean) && hasTargetCompanies && hasSkills;
+};
+
+export const registerUser = asyncHandler(async (req, res) => {
+  const fullName = requiredString(req.body.fullName, "Full name");
+  const email = requiredString(req.body.email, "Email").toLowerCase();
+  const password = requiredString(req.body.password, "Password");
 
   if (password.length < 6) {
     throw new ApiError(400, "Password must be at least 6 characters long");
@@ -73,11 +95,8 @@ export const registerUser = asyncHandler(async (req, res) => {
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    throw new ApiError(400, "Email and password are required");
-  }
+  const email = requiredString(req.body.email, "Email").toLowerCase();
+  const password = requiredString(req.body.password, "Password");
 
   const user = await User.findOne({ email }).select("+password");
 
@@ -136,7 +155,14 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
 });
 
 export const updateUserProfile = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
   const {
+    fullName,
     college,
     branch,
     graduationYear,
@@ -144,39 +170,51 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
     targetCompanies,
     skills,
     currentPreparationLevel,
+    avatar,
   } = req.body;
 
-  const user = await User.findById(req.user._id);
-
-  if (!user) {
-    throw new ApiError(404, "User not found");
+  if (fullName !== undefined) {
+    user.fullName = requiredString(fullName, "Full name");
   }
 
-  if (college !== undefined) user.college = college;
-  if (branch !== undefined) user.branch = branch;
-  if (graduationYear !== undefined) user.graduationYear = graduationYear;
-  if (targetRole !== undefined) user.targetRole = targetRole;
-  if (targetCompanies !== undefined) user.targetCompanies = targetCompanies;
-  if (skills !== undefined) user.skills = skills;
+  if (college !== undefined) {
+    user.college = String(college).trim();
+  }
+
+  if (branch !== undefined) {
+    user.branch = String(branch).trim();
+  }
+
+  if (graduationYear !== undefined) {
+    user.graduationYear = String(graduationYear).trim();
+  }
+
+  if (targetRole !== undefined) {
+    user.targetRole = String(targetRole).trim();
+  }
+
+  if (targetCompanies !== undefined) {
+    user.targetCompanies = normalizeArray(targetCompanies);
+  }
+
+  if (skills !== undefined) {
+    user.skills = normalizeArray(skills);
+  }
+
   if (currentPreparationLevel !== undefined) {
-    user.currentPreparationLevel = currentPreparationLevel;
+    user.currentPreparationLevel = normalizeEnum(
+      currentPreparationLevel,
+      allowedPreparationLevels,
+      "preparation level",
+      "beginner"
+    );
   }
 
-  const requiredFields = [
-    user.college,
-    user.branch,
-    user.graduationYear,
-    user.targetRole,
-    user.currentPreparationLevel,
-  ];
+  if (avatar !== undefined) {
+    user.avatar = String(avatar).trim();
+  }
 
-  const hasTargetCompanies =
-    Array.isArray(user.targetCompanies) && user.targetCompanies.length > 0;
-
-  const hasSkills = Array.isArray(user.skills) && user.skills.length > 0;
-
-  user.isProfileCompleted =
-    requiredFields.every(Boolean) && hasTargetCompanies && hasSkills;
+  user.isProfileCompleted = calculateProfileCompleted(user);
 
   const updatedUser = await user.save();
 

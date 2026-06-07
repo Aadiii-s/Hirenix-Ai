@@ -41,11 +41,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
 app.use("/api/resumes", resumeRoutes);
 app.use("/api/dsa", dsaRoutes);
-app.use("/api/readiness", readinessRoutes);
 app.use("/api/interviews",interviewRoutes);
 app.use("/api/skill-gap", skillGapRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/readiness", readinessRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

@@ -65,6 +65,7 @@ const mockInterviewSchema = new mongoose.Schema(
       type: String,
       enum: ["hr", "dsa", "mern", "project", "behavioral", "mixed"],
       required: true,
+      default: "mixed"
     },
 
     targetRole: {
@@ -75,7 +76,7 @@ const mockInterviewSchema = new mongoose.Schema(
 
     difficulty: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced"],
+      enum: ["easy", "medium", "hard"],
       default: "intermediate",
     },
 

@@ -25,11 +25,11 @@ import StatCard from "../components/StatCard";
 
 const initialFormData = {
   title: "",
-  platform: "LeetCode",
+  platform: "leetcode",
   problemUrl: "",
   topic: "",
   difficulty: "medium",
-  status: "unsolved",
+  status: "not_started",
   notes: "",
 };
 
@@ -226,7 +226,7 @@ const DsaTracker = () => {
 
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 font-semibold hover:bg-blue-700 cursor-pointer"
         >
           <Plus size={18} />
           Add Question

@@ -1,39 +1,135 @@
 import Roadmap from "../models/roadmap.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import {asyncHandler} from "../utils/asyncHandler.js"
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { validateMongoId } from "../utils/validateMongoId.js";
+import {
+  requiredString,
+  normalizeEnum,
+  normalizeArray,
+  normalizeNumberInRange,
+} from "../utils/validators.js";
 import { buildRoadmapPrompt } from "../utils/roadmapPrompt.js";
-import mongoose from "mongoose";
 import {
   generateAIContent,
   parseAIJsonResponse,
 } from "../services/ai.service.js";
 
+const allowedLevels = ["beginner", "intermediate", "advanced"];
+
+const safeArray = (value) => {
+  return Array.isArray(value) ? value : [];
+};
+
+const normalizeRoadmapDays = (dailyPlan = [], durationInDays) => {
+  if (!Array.isArray(dailyPlan)) return [];
+
+  return dailyPlan.slice(0, durationInDays).map((day, index) => {
+    const dayNumber = Number(day.day || day.dayNumber || index + 1);
+
+    return {
+      day: dayNumber,
+      title: day.title || day.topic || day.focus || `Day ${dayNumber}`,
+      description:
+        day.description ||
+        day.summary ||
+        day.goal ||
+        "Complete the planned preparation tasks for this day.",
+      tasks: safeArray(day.tasks || day.taskList || day.activities),
+      resources: safeArray(day.resources || day.learningResources || day.links),
+      practice: safeArray(day.practice || day.practiceProblems || day.exercises),
+      outcome: day.outcome || day.expectedOutcome || "",
+    };
+  });
+};
+
+const getFallbackRoadmap = ({
+  targetRole,
+  durationInDays,
+  currentLevel,
+  skills,
+  weakAreas,
+}) => {
+  const dailyPlan = Array.from({ length: durationInDays }, (_, index) => {
+    const day = index + 1;
+
+    return {
+      day,
+      title: `Day ${day}: ${targetRole} Preparation`,
+      description: `Focus on ${targetRole} preparation based on your ${currentLevel} level.`,
+      tasks: [
+        "Revise one core concept",
+        "Practice coding or technical questions",
+        "Update notes with mistakes and learnings",
+      ],
+      resources: [
+        "Official documentation",
+        "DSA practice platform",
+        "Project notes",
+      ],
+      practice: [
+        "Solve 2-3 related problems",
+        "Explain one topic aloud like an interview answer",
+      ],
+      outcome: "You should complete one focused preparation block today.",
+    };
+  });
+
+  return {
+    title: `${durationInDays}-Day ${targetRole} Placement Roadmap`,
+    dailyPlan,
+    weeklyMilestones: [
+      {
+        week: 1,
+        milestone: "Build consistency and cover fundamentals.",
+      },
+    ],
+    recommendedResources: [
+      "LeetCode",
+      "GeeksforGeeks",
+      "MDN Docs",
+      "React Docs",
+      "Node.js Docs",
+    ],
+    aiSuggestions: [
+      "Follow the roadmap daily.",
+      "Track DSA and interview progress.",
+      "Revise weak areas every weekend.",
+      ...(weakAreas?.length ? weakAreas.map((area) => `Improve ${area}.`) : []),
+      ...(skills?.length ? [`Use your existing skills: ${skills.join(", ")}.`] : []),
+    ],
+  };
+};
+
 export const generateRoadmap = asyncHandler(async (req, res) => {
-  const {
-    targetRole,
-    targetCompany,
-    durationInDays,
-    currentLevel,
-    skills,
-    weakAreas,
-  } = req.body;
+  const targetRole = requiredString(req.body.targetRole, "Target role");
 
-  if (!targetRole || !durationInDays || !currentLevel) {
-    throw new ApiError(
-      400,
-      "Target role, duration in days, and current level are required"
-    );
-  }
+  const durationInDays = normalizeNumberInRange(
+    req.body.durationInDays,
+    30,
+    7,
+    180,
+    "Duration"
+  );
 
-  if (durationInDays < 7 || durationInDays > 180) {
-    throw new ApiError(400, "Duration must be between 7 and 180 days");
-  }
+  const currentLevel = normalizeEnum(
+    req.body.currentLevel,
+    allowedLevels,
+    "current level",
+    "beginner"
+  );
+
+  const targetCompany = req.body.targetCompany
+    ? String(req.body.targetCompany).trim()
+    : "";
 
   const user = req.user;
 
-  const finalSkills =
-    Array.isArray(skills) && skills.length > 0 ? skills : user.skills;
+  const requestSkills = normalizeArray(req.body.skills);
+  const profileSkills = normalizeArray(user.skills);
+  const finalSkills = requestSkills.length > 0 ? requestSkills : profileSkills;
+
+  const weakAreas = normalizeArray(req.body.weakAreas || req.body.focusAreas);
 
   const prompt = buildRoadmapPrompt({
     fullName: user.fullName,
@@ -47,25 +143,68 @@ export const generateRoadmap = asyncHandler(async (req, res) => {
     branch: user.branch,
   });
 
-  const aiText = await generateAIContent(prompt);
-  const parsedRoadmap = parseAIJsonResponse(aiText);
+  let aiText = "";
+  let parsedRoadmap = {};
+
+  try {
+    aiText = await generateAIContent(prompt);
+    parsedRoadmap = parseAIJsonResponse(aiText) || {};
+  } catch (error) {
+    console.log("Roadmap AI generation failed:", error.message);
+
+    parsedRoadmap = getFallbackRoadmap({
+      targetRole,
+      durationInDays,
+      currentLevel,
+      skills: finalSkills,
+      weakAreas,
+    });
+
+    aiText = JSON.stringify(parsedRoadmap);
+  }
+
+  const dailyPlan = normalizeRoadmapDays(
+    parsedRoadmap.dailyPlan ||
+      parsedRoadmap.days ||
+      parsedRoadmap.roadmapDays ||
+      parsedRoadmap.plan ||
+      [],
+    durationInDays
+  );
+
+  const finalDailyPlan =
+    dailyPlan.length > 0
+      ? dailyPlan
+      : getFallbackRoadmap({
+          targetRole,
+          durationInDays,
+          currentLevel,
+          skills: finalSkills,
+          weakAreas,
+        }).dailyPlan;
 
   const roadmap = await Roadmap.create({
     user: user._id,
     title:
       parsedRoadmap.title ||
       `${durationInDays}-Day ${targetRole} Placement Roadmap`,
+    description:
+      parsedRoadmap.description ||
+      `Personalized ${durationInDays}-day roadmap for ${targetRole}.`,
     targetRole,
-    targetCompany: targetCompany || "",
+    targetCompany,
     durationInDays,
     currentLevel,
     skills: finalSkills,
-    weakAreas: Array.isArray(weakAreas) ? weakAreas : [],
+    weakAreas,
     roadmapText: aiText,
-    dailyPlan: parsedRoadmap.dailyPlan || [],
-    weeklyMilestones: parsedRoadmap.weeklyMilestones || [],
-    recommendedResources: parsedRoadmap.recommendedResources || [],
-    aiSuggestions: parsedRoadmap.aiSuggestions || [],
+    dailyPlan: finalDailyPlan,
+    days: finalDailyPlan,
+    weeklyMilestones: safeArray(parsedRoadmap.weeklyMilestones),
+    recommendedResources: safeArray(parsedRoadmap.recommendedResources),
+    aiSuggestions: safeArray(parsedRoadmap.aiSuggestions),
+    completedDays: [],
+    progressPercentage: 0,
   });
 
   return res
@@ -86,9 +225,7 @@ export const getMyRoadmaps = asyncHandler(async (req, res) => {
 export const getRoadmapById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid roadmap id");
-  }
+  validateMongoId(id, "Invalid roadmap id");
 
   const roadmap = await Roadmap.findOne({
     _id: id,
@@ -107,9 +244,7 @@ export const getRoadmapById = asyncHandler(async (req, res) => {
 export const deleteRoadmap = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid roadmap id");
-  }
+  validateMongoId(id, "Invalid roadmap id");
 
   const roadmap = await Roadmap.findOneAndDelete({
     _id: id,
@@ -127,13 +262,12 @@ export const deleteRoadmap = asyncHandler(async (req, res) => {
 
 export const toggleRoadmapDayCompletion = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { day } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid roadmap id");
-  }
+  validateMongoId(id, "Invalid roadmap id");
 
-  if (!day) {
+  const dayValue = req.body.day ?? req.body.dayNumber;
+
+  if (!dayValue) {
     throw new ApiError(400, "Day is required");
   }
 
@@ -146,7 +280,11 @@ export const toggleRoadmapDayCompletion = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Roadmap not found");
   }
 
-  const dayNumber = Number(day);
+  const dayNumber = Number(dayValue);
+
+  if (!Number.isInteger(dayNumber)) {
+    throw new ApiError(400, "Day must be a valid number");
+  }
 
   if (dayNumber < 1 || dayNumber > roadmap.durationInDays) {
     throw new ApiError(
@@ -155,14 +293,18 @@ export const toggleRoadmapDayCompletion = asyncHandler(async (req, res) => {
     );
   }
 
-  const isAlreadyCompleted = roadmap.completedDays.includes(dayNumber);
+  const completedDays = Array.isArray(roadmap.completedDays)
+    ? roadmap.completedDays.map(Number)
+    : [];
+
+  const isAlreadyCompleted = completedDays.includes(dayNumber);
 
   if (isAlreadyCompleted) {
-    roadmap.completedDays = roadmap.completedDays.filter(
+    roadmap.completedDays = completedDays.filter(
       (completedDay) => completedDay !== dayNumber
     );
   } else {
-    roadmap.completedDays.push(dayNumber);
+    roadmap.completedDays = [...completedDays, dayNumber];
   }
 
   roadmap.completedDays.sort((a, b) => a - b);
@@ -185,6 +327,7 @@ export const toggleRoadmapDayCompletion = asyncHandler(async (req, res) => {
       )
     );
 });
+
 export const getLatestRoadmap = asyncHandler(async (req, res) => {
   const roadmap = await Roadmap.findOne({
     user: req.user._id,

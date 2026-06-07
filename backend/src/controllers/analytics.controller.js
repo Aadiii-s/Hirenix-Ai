@@ -6,7 +6,7 @@ import Roadmap from "../models/roadmap.model.js";
 import SkillGapAnalysis from "../models/skillGapAnalysis.model.js";
 
 import ApiResponse from "../utils/ApiResponse.js";
-import{ asyncHandler }from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const calculateProfileScore = (user) => {
   let score = 0;
@@ -24,11 +24,16 @@ const calculateProfileScore = (user) => {
   return Math.min(score, 100);
 };
 
-const getScoreLevel = (score) => {
+const getScoreLevel = (score = 0) => {
   if (score >= 80) return "strong";
   if (score >= 60) return "good";
   if (score >= 40) return "average";
   return "weak";
+};
+
+const safeNumber = (value, fallback = 0) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
 };
 
 const getQuickActions = ({
@@ -45,7 +50,8 @@ const getQuickActions = ({
   if (profileScore < 80) {
     actions.push({
       title: "Complete your profile",
-      description: "Add target role, skills, companies, branch, and graduation year.",
+      description:
+        "Add target role, skills, companies, branch, and graduation year.",
       path: "/edit-profile",
       priority: "high",
     });
@@ -54,7 +60,8 @@ const getQuickActions = ({
   if (!latestResume) {
     actions.push({
       title: "Analyze your resume",
-      description: "Get ATS score, missing keywords, and improved bullet points.",
+      description:
+        "Get ATS score, missing keywords, and improved bullet points.",
       path: "/resume-analyzer",
       priority: "high",
     });
@@ -69,19 +76,21 @@ const getQuickActions = ({
     });
   }
 
-  if (dsaStats.solvedQuestions < 30) {
+  if ((dsaStats?.solvedQuestions || 0) < 30) {
     actions.push({
       title: "Solve more DSA problems",
-      description: "Track at least 30 solved problems to build coding momentum.",
+      description:
+        "Track at least 30 solved problems to build coding momentum.",
       path: "/dsa-tracker",
       priority: "high",
     });
   }
 
-  if (interviewStats.completedInterviews === 0) {
+  if ((interviewStats?.completedInterviews || 0) === 0) {
     actions.push({
       title: "Start mock interview",
-      description: "Practice AI mock interviews to improve confidence and communication.",
+      description:
+        "Practice AI mock interviews to improve confidence and communication.",
       path: "/mock-interview",
       priority: "medium",
     });
@@ -96,10 +105,11 @@ const getQuickActions = ({
     });
   }
 
-  if (companyStats.totalCompanies === 0) {
+  if ((companyStats?.totalCompanies || 0) === 0) {
     actions.push({
       title: "Add target companies",
-      description: "Track company-wise preparation and application progress.",
+      description:
+        "Track company-wise preparation and application progress.",
       path: "/companies",
       priority: "medium",
     });
@@ -118,7 +128,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
     user: userId,
   }).sort({ createdAt: -1 });
 
-  const roadmapProgress = latestRoadmap?.progressPercentage || 0;
+  const roadmapProgress = safeNumber(latestRoadmap?.progressPercentage);
 
   const latestResume = await ResumeAnalysis.findOne({
     user: userId,
@@ -126,7 +136,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
     .select("-resumeText -rawAiResponse")
     .sort({ createdAt: -1 });
 
-  const resumeScore = latestResume?.atsScore || 0;
+  const resumeScore = safeNumber(latestResume?.atsScore);
 
   const totalDsaQuestions = await DsaQuestion.countDocuments({
     user: userId,
@@ -193,7 +203,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
       ? 0
       : Math.round(
           completedInterviews.reduce(
-            (sum, interview) => sum + interview.overallScore,
+            (sum, interview) => sum + safeNumber(interview.overallScore),
             0
           ) / completedInterviews.length
         );
@@ -228,14 +238,16 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
 
   const companyList = await CompanyPrep.find({
     user: userId,
-  }).select("companyName progressPercentage priority applicationStatus");
+  })
+    .select("companyName progressPercentage priority applicationStatus")
+    .sort({ progressPercentage: -1, createdAt: -1 });
 
   const averageCompanyProgress =
     companyList.length === 0
       ? 0
       : Math.round(
           companyList.reduce(
-            (sum, company) => sum + company.progressPercentage,
+            (sum, company) => sum + safeNumber(company.progressPercentage),
             0
           ) / companyList.length
         );
@@ -250,7 +262,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
   if (averageCompanyProgress < 40) weakAreas.push("Company-wise Preparation");
 
   latestSkillGap?.topThreeFocusAreas?.forEach((focus) => {
-    if (!weakAreas.includes(focus)) {
+    if (focus && !weakAreas.includes(focus)) {
       weakAreas.push(focus);
     }
   });
@@ -272,7 +284,9 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
       module: "Resume",
       score: resumeScore,
       level: getScoreLevel(resumeScore),
-      path: latestResume ? `/resume-analyses/${latestResume._id}` : "/resume-analyzer",
+      path: latestResume
+        ? `/resume-analyses/${latestResume._id}`
+        : "/resume-analyzer",
     },
     {
       module: "DSA",
@@ -284,7 +298,9 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
       module: "Interview",
       score: averageInterviewScore,
       level: getScoreLevel(averageInterviewScore),
-      path: latestInterview ? `/mock-interviews/${latestInterview._id}` : "/mock-interview",
+      path: latestInterview
+        ? `/mock-interviews/${latestInterview._id}`
+        : "/mock-interview",
     },
     {
       module: "Companies",
@@ -376,6 +392,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
 
     dsaStats,
     interviewStats,
+
     skillGap: latestSkillGap
       ? {
           _id: latestSkillGap._id,
@@ -385,6 +402,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
           topThreeFocusAreas: latestSkillGap.topThreeFocusAreas,
         }
       : null,
+
     companyStats,
     weakAreas: weakAreas.slice(0, 8),
     quickActions,
@@ -392,5 +410,11 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .json(new ApiResponse(200, overview, "Analytics overview fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        overview,
+        "Analytics overview fetched successfully"
+      )
+    );
 });

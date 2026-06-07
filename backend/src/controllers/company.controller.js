@@ -1,9 +1,44 @@
-import mongoose from "mongoose";
-
 import CompanyPrep from "../models/companyPrep.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import {asyncHandler }from "../utils/asyncHandler.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { validateMongoId } from "../utils/validateMongoId.js";
+import {
+  requiredString,
+  normalizeEnum,
+  normalizeArray,
+} from "../utils/validators.js";
+
+const allowedCompanyTypes = [
+  "product",
+  "service",
+  "startup",
+  "fintech",
+  "consulting",
+  "other",
+];
+
+const allowedPriorities = ["high", "medium", "low"];
+
+const allowedApplicationStatuses = [
+  "not_applied",
+  "applied",
+  "shortlisted",
+  "interviewing",
+  "offered",
+  "rejected",
+];
+
+const allowedTaskCategories = [
+  "dsa",
+  "system_design",
+  "project",
+  "resume",
+  "aptitude",
+  "interview",
+  "research",
+  "other",
+];
 
 const calculateCompanyProgress = (tasks = []) => {
   if (!tasks.length) return 0;
@@ -13,48 +48,79 @@ const calculateCompanyProgress = (tasks = []) => {
   return Math.round((completedTasks / tasks.length) * 100);
 };
 
-export const createCompanyPrep = asyncHandler(async (req, res) => {
-  const {
-    companyName,
-    targetRole,
-    companyType,
-    priority,
-    applicationStatus,
-    preparationFocus,
-    tasks,
-    notes,
-  } = req.body;
+const escapeRegex = (text = "") => {
+  return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
 
-  if (!companyName) {
-    throw new ApiError(400, "Company name is required");
-  }
+const formatTasks = (tasks = []) => {
+  if (!Array.isArray(tasks)) return [];
+
+  return tasks
+    .filter((task) => task?.title && String(task.title).trim())
+    .map((task) => {
+      const isCompleted = Boolean(task.isCompleted);
+
+      return {
+        title: String(task.title).trim(),
+        category: allowedTaskCategories.includes(task.category)
+          ? task.category
+          : "other",
+        isCompleted,
+        completedAt: isCompleted ? task.completedAt || new Date() : null,
+      };
+    });
+};
+
+export const createCompanyPrep = asyncHandler(async (req, res) => {
+  const companyName = requiredString(req.body.companyName, "Company name");
+
+  const targetRole =
+    req.body.targetRole?.trim() ||
+    req.user.targetRole ||
+    "Software Development Engineer";
+
+  const companyType = normalizeEnum(
+    req.body.companyType,
+    allowedCompanyTypes,
+    "company type",
+    "product"
+  );
+
+  const priority = normalizeEnum(
+    req.body.priority,
+    allowedPriorities,
+    "priority",
+    "medium"
+  );
+
+  const applicationStatus = normalizeEnum(
+    req.body.applicationStatus,
+    allowedApplicationStatuses,
+    "application status",
+    "not_applied"
+  );
+
+  const preparationFocus = normalizeArray(req.body.preparationFocus);
+  const formattedTasks = formatTasks(req.body.tasks);
+  const notes = req.body.notes ? String(req.body.notes).trim() : "";
 
   const alreadyExists = await CompanyPrep.findOne({
     user: req.user._id,
-    companyName: new RegExp(`^${companyName}$`, "i"),
+    companyName: new RegExp(`^${escapeRegex(companyName)}$`, "i"),
   });
 
   if (alreadyExists) {
     throw new ApiError(409, "Company preparation already exists");
   }
 
-  const formattedTasks = Array.isArray(tasks)
-    ? tasks.map((task) => ({
-        title: task.title,
-        category: task.category || "other",
-        isCompleted: task.isCompleted || false,
-        completedAt: task.isCompleted ? new Date() : null,
-      }))
-    : [];
-
   const companyPrep = await CompanyPrep.create({
     user: req.user._id,
     companyName,
-    targetRole: targetRole || req.user.targetRole || "Software Development Engineer",
+    targetRole,
     companyType,
     priority,
     applicationStatus,
-    preparationFocus: Array.isArray(preparationFocus) ? preparationFocus : [],
+    preparationFocus,
     tasks: formattedTasks,
     notes,
     progressPercentage: calculateCompanyProgress(formattedTasks),
@@ -86,30 +152,57 @@ export const getMyCompanyPreps = asyncHandler(async (req, res) => {
   };
 
   if (search) {
+    const safeSearch = escapeRegex(search);
+
     filter.$or = [
-      { companyName: new RegExp(search, "i") },
-      { targetRole: new RegExp(search, "i") },
-      { notes: new RegExp(search, "i") },
-      { preparationFocus: { $in: [new RegExp(search, "i")] } },
+      { companyName: new RegExp(safeSearch, "i") },
+      { targetRole: new RegExp(safeSearch, "i") },
+      { notes: new RegExp(safeSearch, "i") },
+      { preparationFocus: { $in: [new RegExp(safeSearch, "i")] } },
     ];
   }
 
   if (companyType) {
-    filter.companyType = companyType;
+    filter.companyType = normalizeEnum(
+      companyType,
+      allowedCompanyTypes,
+      "company type",
+      "product"
+    );
   }
 
   if (priority) {
-    filter.priority = priority;
+    filter.priority = normalizeEnum(
+      priority,
+      allowedPriorities,
+      "priority",
+      "medium"
+    );
   }
 
   if (applicationStatus) {
-    filter.applicationStatus = applicationStatus;
+    filter.applicationStatus = normalizeEnum(
+      applicationStatus,
+      allowedApplicationStatuses,
+      "application status",
+      "not_applied"
+    );
   }
 
+  const allowedSortFields = [
+    "createdAt",
+    "updatedAt",
+    "companyName",
+    "priority",
+    "applicationStatus",
+    "progressPercentage",
+  ];
+
+  const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
   const sortOrder = order === "asc" ? 1 : -1;
 
   const companies = await CompanyPrep.find(filter).sort({
-    [sortBy]: sortOrder,
+    [safeSortBy]: sortOrder,
   });
 
   return res
@@ -126,9 +219,7 @@ export const getMyCompanyPreps = asyncHandler(async (req, res) => {
 export const getCompanyPrepById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid company preparation id");
-  }
+  validateMongoId(id, "Invalid company preparation id");
 
   const companyPrep = await CompanyPrep.findOne({
     _id: id,
@@ -153,9 +244,7 @@ export const getCompanyPrepById = asyncHandler(async (req, res) => {
 export const updateCompanyPrep = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid company preparation id");
-  }
+  validateMongoId(id, "Invalid company preparation id");
 
   const companyPrep = await CompanyPrep.findOne({
     _id: id,
@@ -166,22 +255,55 @@ export const updateCompanyPrep = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Company preparation not found");
   }
 
-  const allowedFields = [
-    "companyName",
-    "targetRole",
-    "companyType",
-    "priority",
-    "applicationStatus",
-    "preparationFocus",
-    "tasks",
-    "notes",
-  ];
+  if (req.body.companyName !== undefined) {
+    companyPrep.companyName = requiredString(
+      req.body.companyName,
+      "Company name"
+    );
+  }
 
-  allowedFields.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      companyPrep[field] = req.body[field];
-    }
-  });
+  if (req.body.targetRole !== undefined) {
+    companyPrep.targetRole = requiredString(req.body.targetRole, "Target role");
+  }
+
+  if (req.body.companyType !== undefined) {
+    companyPrep.companyType = normalizeEnum(
+      req.body.companyType,
+      allowedCompanyTypes,
+      "company type",
+      "product"
+    );
+  }
+
+  if (req.body.priority !== undefined) {
+    companyPrep.priority = normalizeEnum(
+      req.body.priority,
+      allowedPriorities,
+      "priority",
+      "medium"
+    );
+  }
+
+  if (req.body.applicationStatus !== undefined) {
+    companyPrep.applicationStatus = normalizeEnum(
+      req.body.applicationStatus,
+      allowedApplicationStatuses,
+      "application status",
+      "not_applied"
+    );
+  }
+
+  if (req.body.preparationFocus !== undefined) {
+    companyPrep.preparationFocus = normalizeArray(req.body.preparationFocus);
+  }
+
+  if (req.body.tasks !== undefined) {
+    companyPrep.tasks = formatTasks(req.body.tasks);
+  }
+
+  if (req.body.notes !== undefined) {
+    companyPrep.notes = String(req.body.notes).trim();
+  }
 
   companyPrep.progressPercentage = calculateCompanyProgress(companyPrep.tasks);
 
@@ -202,13 +324,13 @@ export const toggleCompanyTask = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { taskId } = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid company preparation id");
-  }
+  validateMongoId(id, "Invalid company preparation id");
 
   if (!taskId) {
     throw new ApiError(400, "Task id is required");
   }
+
+  validateMongoId(taskId, "Invalid task id");
 
   const companyPrep = await CompanyPrep.findOne({
     _id: id,
@@ -248,9 +370,7 @@ export const toggleCompanyTask = asyncHandler(async (req, res) => {
 export const deleteCompanyPrep = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(400, "Invalid company preparation id");
-  }
+  validateMongoId(id, "Invalid company preparation id");
 
   const companyPrep = await CompanyPrep.findOneAndDelete({
     _id: id,
@@ -297,7 +417,7 @@ export const getCompanyPrepStats = asyncHandler(async (req, res) => {
       ? 0
       : Math.round(
           companies.reduce(
-            (sum, company) => sum + company.progressPercentage,
+            (sum, company) => sum + (Number(company.progressPercentage) || 0),
             0
           ) / companies.length
         );
