@@ -6,6 +6,8 @@ import { analyzeResumeApi } from "../api/resume.api";
 import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import SectionCard from "../components/SectionCard";
+import ApiErrorAlert from "../components/ApiErrorAlert";
+import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
 
 const ResumeAnalyzer = () => {
   const navigate = useNavigate();
@@ -52,7 +54,12 @@ const ResumeAnalyzer = () => {
 
       navigate(`/resume-analyses/${response.data._id}`);
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to analyze resume");
+      setError(
+  getApiErrorMessage(
+    error,
+    "Failed to analyze resume. Please try again."
+  )
+);
     } finally {
       setLoading(false);
     }
@@ -70,10 +77,12 @@ const ResumeAnalyzer = () => {
       />
 
       {error && (
-        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          {error}
-        </div>
-      )}
+  <ApiErrorAlert
+    title="Resume analysis failed"
+    message={error}
+    onRetry={() => setError("")}
+  />
+)}
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <form onSubmit={handleAnalyze} className="lg:col-span-2">

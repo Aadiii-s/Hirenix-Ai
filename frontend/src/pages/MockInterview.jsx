@@ -7,6 +7,8 @@ import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import SectionCard from "../components/SectionCard";
 import { useAuth } from "../context/AuthContext";
+import ApiErrorAlert from "../components/ApiErrorAlert";
+import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
 
 const MockInterview = () => {
   const { user } = useAuth();
@@ -67,7 +69,12 @@ const MockInterview = () => {
 
       navigate(`/mock-interviews/${response.data._id}`);
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to start interview");
+      setError(
+        getApiErrorMessage(
+          error,
+          "Failed to start mock interview. Please try again."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -85,9 +92,11 @@ const MockInterview = () => {
       />
 
       {error && (
-        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          {error}
-        </div>
+        <ApiErrorAlert
+          title="Mock interview generation failed"
+          message={error}
+          onRetry={() => setError("")}
+        />
       )}
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">

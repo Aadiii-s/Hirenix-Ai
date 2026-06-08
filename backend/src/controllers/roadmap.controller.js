@@ -87,9 +87,6 @@ export const generateRoadmap = asyncHandler(async (req, res) => {
   });
 
   let aiText = "";
-  let parsedRoadmap = {};
-
-  let aiText = "";
 let parsedRoadmap = {};
 
 try {

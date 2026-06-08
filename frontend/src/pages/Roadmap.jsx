@@ -7,6 +7,8 @@ import AppLayout from "../components/AppLayout";
 import PageHeader from "../components/PageHeader";
 import SectionCard from "../components/SectionCard";
 import { useAuth } from "../context/AuthContext";
+import ApiErrorAlert from "../components/ApiErrorAlert";
+import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -63,7 +65,12 @@ const Roadmap = () => {
 
       navigate(`/roadmaps/${response.data._id}`);
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to generate roadmap");
+      setError(
+        getApiErrorMessage(
+          error,
+          "Failed to generate roadmap. Please try again."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -81,9 +88,11 @@ const Roadmap = () => {
       />
 
       {error && (
-        <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-          {error}
-        </div>
+        <ApiErrorAlert
+          title="Roadmap generation failed"
+          message={error}
+          onRetry={() => setError("")}
+        />
       )}
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">

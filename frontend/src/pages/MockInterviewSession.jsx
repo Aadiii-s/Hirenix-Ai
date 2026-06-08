@@ -19,6 +19,7 @@ import ErrorState from "../components/ErrorState";
 import LoadingState from "../components/LoadingState";
 import PageHeader from "../components/PageHeader";
 import SectionCard from "../components/SectionCard";
+import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
 
 const MockInterviewSession = () => {
   const { id } = useParams();
@@ -32,6 +33,7 @@ const MockInterviewSession = () => {
   const [answerLoading, setAnswerLoading] = useState(false);
   const [completeLoading, setCompleteLoading] = useState(false);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   const fetchInterview = async () => {
     try {
@@ -89,7 +91,12 @@ const MockInterviewSession = () => {
       setInterview(response.data.interview);
       setLatestEvaluation(response.data.evaluation);
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to submit answer");
+      setActionError(
+        getApiErrorMessage(
+          error,
+          "Failed to evaluate answer. Please try again."
+        )
+      );
     } finally {
       setAnswerLoading(false);
     }
@@ -146,9 +153,8 @@ const MockInterviewSession = () => {
       <PageHeader
         eyebrow="AI Mock Interview"
         title={interview.title}
-        description={`${interview.targetRole || "Target role"} • ${
-          interview.interviewType
-        } • ${interview.difficulty}`}
+        description={`${interview.targetRole || "Target role"} • ${interview.interviewType
+          } • ${interview.difficulty}`}
         icon={Brain}
         backPath="/mock-interviews"
         backLabel="Back to interview history"
@@ -171,9 +177,8 @@ const MockInterviewSession = () => {
       ) : (
         <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           <SectionCard
-            title={`Question ${currentQuestionIndex + 1} of ${
-              interview.questions.length
-            }`}
+            title={`Question ${currentQuestionIndex + 1} of ${interview.questions.length
+              }`}
             description={currentQuestion?.isAnswered ? "Already answered" : "Write and submit your answer"}
             icon={Brain}
             className="xl:col-span-2"
@@ -220,6 +225,14 @@ const MockInterviewSession = () => {
             )}
           </SectionCard>
 
+          {actionError && (
+  <ApiErrorAlert
+    title="Interview action failed"
+    message={actionError}
+    onRetry={() => setActionError("")}
+  />
+)}
+
           <SectionCard
             title="Questions"
             description="Navigate through interview questions"
@@ -230,11 +243,10 @@ const MockInterviewSession = () => {
                 <button
                   key={question._id}
                   onClick={() => setCurrentQuestionIndex(index)}
-                  className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm ${
-                    currentQuestionIndex === index
+                  className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm ${currentQuestionIndex === index
                       ? "bg-blue-600 text-white"
                       : "bg-slate-950 text-slate-300 hover:bg-slate-800"
-                  }`}
+                    }`}
                 >
                   <span>Question {index + 1}</span>
 
