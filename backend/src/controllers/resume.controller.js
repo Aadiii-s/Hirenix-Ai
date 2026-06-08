@@ -15,6 +15,7 @@ import {
   generateAIContent,
   parseAIJsonResponse,
 } from "../services/ai.service.js";
+import { validateResumeAnalysisResponse } from "../utils/aiResponseValidators.js";
 
 const deleteLocalFile = (filePath) => {
   try {
@@ -75,17 +76,20 @@ export const analyzeResume = asyncHandler(async (req, res) => {
     });
 
     let aiText = "";
-    let parsedAnalysis = {};
+let parsedAnalysis = {};
 
-    try {
+try {
   aiText = await generateAIContent(prompt);
   parsedAnalysis = parseAIJsonResponse(aiText) || {};
+  validateResumeAnalysisResponse(parsedAnalysis);
 } catch (error) {
   console.log("Resume AI analysis failed:", error.message);
 
   throw new ApiError(
-    503,
-    "AI resume analysis failed. Please try again after some time."
+    error.statusCode || 503,
+    error.statusCode === 502
+      ? error.message
+      : "AI resume analysis failed. Please try again after some time."
   );
 }
 

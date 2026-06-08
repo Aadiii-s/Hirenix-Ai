@@ -14,6 +14,7 @@ import {
   generateAIContent,
   parseAIJsonResponse,
 } from "../services/ai.service.js";
+import { validateRoadmapResponse } from "../utils/aiResponseValidators.js";
 
 const allowedLevels = ["beginner", "intermediate", "advanced"];
 
@@ -88,17 +89,23 @@ export const generateRoadmap = asyncHandler(async (req, res) => {
   let aiText = "";
   let parsedRoadmap = {};
 
-  try {
-    aiText = await generateAIContent(prompt);
-    parsedRoadmap = parseAIJsonResponse(aiText) || {};
-  } catch (error) {
-    console.log("Roadmap AI generation failed:", error.message);
+  let aiText = "";
+let parsedRoadmap = {};
 
-    throw new ApiError(
-      503,
-      "AI roadmap generation failed. Please try again after some time."
-    );
-  }
+try {
+  aiText = await generateAIContent(prompt);
+  parsedRoadmap = parseAIJsonResponse(aiText) || {};
+  validateRoadmapResponse(parsedRoadmap);
+} catch (error) {
+  console.log("Roadmap AI generation failed:", error.message);
+
+  throw new ApiError(
+    error.statusCode || 503,
+    error.statusCode === 502
+      ? error.message
+      : "AI roadmap generation failed. Please try again after some time."
+  );
+}
 
   const finalDailyPlan = normalizeRoadmapDays(
   parsedRoadmap.dailyPlan ||
