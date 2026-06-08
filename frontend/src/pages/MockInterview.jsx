@@ -9,6 +9,7 @@ import SectionCard from "../components/SectionCard";
 import { useAuth } from "../context/AuthContext";
 import ApiErrorAlert from "../components/ApiErrorAlert";
 import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
+import AiActionLoader from "../components/AiActionLoader";
 
 const MockInterview = () => {
   const { user } = useAuth();
@@ -44,6 +45,7 @@ const MockInterview = () => {
 
   const handleStartInterview = async (e) => {
     e.preventDefault();
+    if(loading) return;
 
     if (!formData.targetRole.trim()) {
       setError("Target role is required");
@@ -90,6 +92,13 @@ const MockInterview = () => {
         backPath="/dashboard"
         backLabel="Back to dashboard"
       />
+
+      {loading && (
+        <AiActionLoader
+          title="Generating mock interview"
+          message="AI is preparing interview questions based on your role, difficulty, and focus areas."
+        />
+      )}
 
       {error && (
         <ApiErrorAlert

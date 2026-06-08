@@ -9,6 +9,7 @@ import SectionCard from "../components/SectionCard";
 import { useAuth } from "../context/AuthContext";
 import ApiErrorAlert from "../components/ApiErrorAlert";
 import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
+import AiActionLoader from "../components/AiActionLoader";
 
 const Roadmap = () => {
   const { user } = useAuth();
@@ -43,6 +44,8 @@ const Roadmap = () => {
 
   const handleGenerate = async (e) => {
     e.preventDefault();
+
+    if(loading) return;
 
     if (!formData.targetRole.trim()) {
       setError("Target role is required");
@@ -86,6 +89,12 @@ const Roadmap = () => {
         backPath="/dashboard"
         backLabel="Back to dashboard"
       />
+      {loading && (
+        <AiActionLoader
+          title="Generating your roadmap"
+          message="AI is creating your personalized day-wise placement preparation plan."
+        />
+      )}
 
       {error && (
         <ApiErrorAlert

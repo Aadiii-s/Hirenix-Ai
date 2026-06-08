@@ -8,6 +8,7 @@ import PageHeader from "../components/PageHeader";
 import SectionCard from "../components/SectionCard";
 import ApiErrorAlert from "../components/ApiErrorAlert";
 import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
+import AiActionLoader from "../components/AiActionLoader";
 
 const ResumeAnalyzer = () => {
   const navigate = useNavigate();
@@ -36,6 +37,8 @@ const ResumeAnalyzer = () => {
   const handleAnalyze = async (e) => {
     e.preventDefault();
 
+    if(loading) return;
+
     if (!resumeFile) {
       setError("Please upload your resume PDF first");
       return;
@@ -55,11 +58,11 @@ const ResumeAnalyzer = () => {
       navigate(`/resume-analyses/${response.data._id}`);
     } catch (error) {
       setError(
-  getApiErrorMessage(
-    error,
-    "Failed to analyze resume. Please try again."
-  )
-);
+        getApiErrorMessage(
+          error,
+          "Failed to analyze resume. Please try again."
+        )
+      );
     } finally {
       setLoading(false);
     }
@@ -76,13 +79,20 @@ const ResumeAnalyzer = () => {
         backLabel="Back to dashboard"
       />
 
+      {loading && (
+        <AiActionLoader
+          title="Analyzing your resume"
+          message="AI is reading your resume and generating ATS score, keywords, strengths, and improvements."
+        />
+      )}
+
       {error && (
-  <ApiErrorAlert
-    title="Resume analysis failed"
-    message={error}
-    onRetry={() => setError("")}
-  />
-)}
+        <ApiErrorAlert
+          title="Resume analysis failed"
+          message={error}
+          onRetry={() => setError("")}
+        />
+      )}
 
       <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <form onSubmit={handleAnalyze} className="lg:col-span-2">

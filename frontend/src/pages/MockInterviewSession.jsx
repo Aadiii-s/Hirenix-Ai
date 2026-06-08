@@ -20,6 +20,8 @@ import LoadingState from "../components/LoadingState";
 import PageHeader from "../components/PageHeader";
 import SectionCard from "../components/SectionCard";
 import { getApiErrorMessage } from "../../utils/getApiErrorMessage";
+import ApiErrorAlert from "../components/ApiErrorAlert";
+import AiActionLoader from "../components/AiActionLoader";
 
 const MockInterviewSession = () => {
   const { id } = useParams();
@@ -75,6 +77,7 @@ const MockInterviewSession = () => {
     interview?.questions?.filter((question) => question.isAnswered).length || 0;
 
   const handleSubmitAnswer = async () => {
+    if(answerLoading) return;
     if (!answer.trim()) {
       alert("Please write your answer first");
       return;
@@ -103,6 +106,9 @@ const MockInterviewSession = () => {
   };
 
   const handleCompleteInterview = async () => {
+
+    if(completeLoading) return;
+    
     const isConfirmed = window.confirm(
       "Are you sure you want to complete this interview?"
     );
@@ -225,13 +231,27 @@ const MockInterviewSession = () => {
             )}
           </SectionCard>
 
+          {answerLoading && (
+            <AiActionLoader
+              title="Evaluating your answer"
+              message="AI is reviewing your answer and generating score, feedback, strengths, and improvements."
+            />
+          )}
+
+          {completeLoading && (
+            <AiActionLoader
+              title="Completing interview report"
+              message="AI is generating your final interview summary and performance report."
+            />
+          )}
+
           {actionError && (
-  <ApiErrorAlert
-    title="Interview action failed"
-    message={actionError}
-    onRetry={() => setActionError("")}
-  />
-)}
+            <ApiErrorAlert
+              title="Interview action failed"
+              message={actionError}
+              onRetry={() => setActionError("")}
+            />
+          )}
 
           <SectionCard
             title="Questions"
@@ -244,8 +264,8 @@ const MockInterviewSession = () => {
                   key={question._id}
                   onClick={() => setCurrentQuestionIndex(index)}
                   className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm ${currentQuestionIndex === index
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-950 text-slate-300 hover:bg-slate-800"
+                    ? "bg-blue-600 text-white"
+                    : "bg-slate-950 text-slate-300 hover:bg-slate-800"
                     }`}
                 >
                   <span>Question {index + 1}</span>
