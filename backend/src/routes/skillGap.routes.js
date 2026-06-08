@@ -9,12 +9,17 @@ import {
 } from "../controllers/skillGap.controller.js";
 
 import { protect } from "../middlewares/auth.middleware.js";
+import { withAiRequestLock } from "../utils/aiRequestLock.js";
 
 const router = Router();
 
 router.use(protect);
 
-router.post("/generate", generateSkillGapAnalysis);
+router.post(
+  "/generate",
+  withAiRequestLock("skill_gap_generation"),
+  generateSkillGapAnalysis
+);
 router.get("/analyze", getLatestSkillGapAnalysis);
 router.get("/my-analyses", getMySkillGapAnalyses);
 router.get("/:id", getSkillGapAnalysisById);
