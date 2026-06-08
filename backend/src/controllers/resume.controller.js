@@ -16,6 +16,7 @@ import {
   parseAIJsonResponse,
 } from "../services/ai.service.js";
 import { validateResumeAnalysisResponse } from "../utils/aiResponseValidators.js";
+import { runLoggedAiJsonTask } from "../utils/runLoggedAiJsonTask.js";
 
 const deleteLocalFile = (filePath) => {
   try {
@@ -76,22 +77,33 @@ export const analyzeResume = asyncHandler(async (req, res) => {
     });
 
     let aiText = "";
-let parsedAnalysis = {};
+    let parsedAnalysis = {};
 
-try {
-  aiText = await generateAIContent(prompt);
-  parsedAnalysis = parseAIJsonResponse(aiText) || {};
-  validateResumeAnalysisResponse(parsedAnalysis);
-} catch (error) {
-  console.log("Resume AI analysis failed:", error.message);
+    try {
+      const aiResult = await runLoggedAiJsonTask({
+        req,
+        module: "resume",
+        action: "resume_analysis",
+        prompt,
+        requestMeta: {
+          targetRole,
+          fileName: req.file.originalname,
+        },
+        validateResponse: validateResumeAnalysisResponse,
+      });
 
-  throw new ApiError(
-    error.statusCode || 503,
-    error.statusCode === 502
-      ? error.message
-      : "AI resume analysis failed. Please try again after some time."
-  );
-}
+      aiText = aiResult.aiText;
+      parsedAnalysis = aiResult.parsed;
+    } catch (error) {
+      console.log("Resume AI analysis failed:", error.message);
+
+      throw new ApiError(
+        error.statusCode || 503,
+        error.statusCode === 502
+          ? error.message
+          : "AI resume analysis failed. Please try again after some time."
+      );
+    }
 
     const analysis = await ResumeAnalysis.create({
       user: user._id,

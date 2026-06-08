@@ -19,12 +19,12 @@ router.use(protect);
 
 router.post(
   "/analyze",
-  upload.single("resume"),
+  uploadResume.single("resume"),
   withAiRequestLock("resume_analysis"),
   analyzeResume
 );
 router.get("/my-analyses", getMyResumeAnalyses);
-router.get("/latest", getLatestResumeAnalysis)
+router.get("/latest", getLatestResumeAnalysis )
 router.get("/:id", getResumeAnalysisById);
 router.delete("/:id", deleteResumeAnalysis);
 

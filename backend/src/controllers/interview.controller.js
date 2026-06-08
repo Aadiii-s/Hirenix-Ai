@@ -19,6 +19,7 @@ import {
   parseAIJsonResponse,
 } from "../services/ai.service.js";
 import { validateInterviewQuestionsResponse, validateAnswerEvaluationResponse, validateInterviewSummaryResponse } from "../utils/aiResponseValidators.js";
+import { runLoggedAiJsonTask } from "../utils/runLoggedAiJsonTask.js";
 
 const allowedInterviewTypes = [
   "hr",
@@ -103,15 +104,21 @@ export const startMockInterview = asyncHandler(async (req, res) => {
   let parsedQuestions = {};
 
   try {
-    const aiText = await generateAIContent(prompt);
-    parsedQuestions = parseAIJsonResponse(aiText);
-
-    questions = normalizeGeneratedQuestions({
-      parsedQuestions,
-      normalizedInterviewType,
-      normalizedDifficulty,
-      safeNumberOfQuestions,
+    const aiResult = await runLoggedAiJsonTask({
+      req,
+      module: "interview",
+      action: "interview_question_generation",
+      prompt,
+      requestMeta: {
+        targetRole,
+        interviewType: normalizedInterviewType,
+        difficulty: normalizedDifficulty,
+        numberOfQuestions: safeNumberOfQuestions,
+      },
+      validateResponse: validateInterviewQuestionsResponse,
     });
+
+    parsedQuestions = aiResult.parsed;
   } catch (error) {
     console.log("Interview question generation failed:", error.message);
 
@@ -192,20 +199,32 @@ export const submitInterviewAnswer = asyncHandler(async (req, res) => {
 
   let parsedEvaluation = {};
 
-try {
-  const aiText = await generateAIContent(prompt);
-  parsedEvaluation = parseAIJsonResponse(aiText) || {};
-  validateAnswerEvaluationResponse(parsedEvaluation);
-} catch (error) {
-  console.log("Answer evaluation failed:", error.message);
+  try {
+    const aiResult = await runLoggedAiJsonTask({
+      req,
+      module: "interview",
+      action: "interview_answer_evaluation",
+      prompt,
+      requestMeta: {
+        interviewId: id,
+        questionId,
+      },
+      validateResponse: validateAnswerEvaluationResponse,
+    });
 
-  throw new ApiError(
-    error.statusCode || 503,
-    error.statusCode === 502
-      ? error.message
-      : "AI answer evaluation failed. Please try again after some time."
-  );
-}
+    parsedEvaluation = aiResult.parsed;
+
+    parsedQuestions = aiResult.parsed;
+  } catch (error) {
+    console.log("Answer evaluation failed:", error.message);
+
+    throw new ApiError(
+      error.statusCode || 503,
+      error.statusCode === 502
+        ? error.message
+        : "AI answer evaluation failed. Please try again after some time."
+    );
+  }
 
   question.userAnswer = answer.trim();
   question.feedback =
@@ -277,20 +296,29 @@ export const completeMockInterview = asyncHandler(async (req, res) => {
 
   let parsedSummary = {};
 
-try {
-  const aiText = await generateAIContent(prompt);
-  parsedSummary = parseAIJsonResponse(aiText) || {};
-  validateInterviewSummaryResponse(parsedSummary);
-} catch (error) {
-  console.log("Interview summary generation failed:", error.message);
+  try {
+    const aiResult = await runLoggedAiJsonTask({
+  req,
+  module: "interview",
+  action: "interview_summary_generation",
+  prompt,
+  requestMeta: {
+    interviewId: id,
+  },
+  validateResponse: validateInterviewSummaryResponse,
+});
 
-  throw new ApiError(
-    error.statusCode || 503,
-    error.statusCode === 502
-      ? error.message
-      : "AI interview summary generation failed. Please try again after some time."
-  );
-}
+parsedSummary = aiResult.parsed;
+  } catch (error) {
+    console.log("Interview summary generation failed:", error.message);
+
+    throw new ApiError(
+      error.statusCode || 503,
+      error.statusCode === 502
+        ? error.message
+        : "AI interview summary generation failed. Please try again after some time."
+    );
+  }
 
   interview.overallScore = overallScore;
   interview.overallFeedback =

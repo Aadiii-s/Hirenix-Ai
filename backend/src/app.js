@@ -12,6 +12,7 @@ import interviewRoutes from "./routes/interview.routes.js"
 import skillGapRoutes from "./routes/skillGap.routes.js"
 import companyRoutes from "./routes/company.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js"
+import aiLogRoutes from "./routes/aiLog.routes.js";
 
 import errorMiddleware from "./middlewares/error.middleware.js";
 import notFoundMiddleware from "./middlewares/notFound.middleware.js";
@@ -46,6 +47,7 @@ app.use("/api/skill-gap", skillGapRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/readiness", readinessRoutes);
+app.use("/api/ai-logs", aiLogRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

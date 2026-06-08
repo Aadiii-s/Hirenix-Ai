@@ -15,6 +15,7 @@ import {
   parseAIJsonResponse,
 } from "../services/ai.service.js";
 import { validateRoadmapResponse } from "../utils/aiResponseValidators.js";
+import { runLoggedAiJsonTask } from "../utils/runLoggedAiJsonTask.js";
 
 const allowedLevels = ["beginner", "intermediate", "advanced"];
 
@@ -87,38 +88,51 @@ export const generateRoadmap = asyncHandler(async (req, res) => {
   });
 
   let aiText = "";
-let parsedRoadmap = {};
+  let parsedRoadmap = {};
 
-try {
-  aiText = await generateAIContent(prompt);
-  parsedRoadmap = parseAIJsonResponse(aiText) || {};
-  validateRoadmapResponse(parsedRoadmap);
-} catch (error) {
-  console.log("Roadmap AI generation failed:", error.message);
+  try {
+    const aiResult = await runLoggedAiJsonTask({
+      req,
+      module: "roadmap",
+      action: "roadmap_generation",
+      prompt,
+      requestMeta: {
+        targetRole,
+        targetCompany,
+        durationInDays,
+        currentLevel,
+      },
+      validateResponse: validateRoadmapResponse,
+    });
 
-  throw new ApiError(
-    error.statusCode || 503,
-    error.statusCode === 502
-      ? error.message
-      : "AI roadmap generation failed. Please try again after some time."
-  );
-}
+    aiText = aiResult.aiText;
+    parsedRoadmap = aiResult.parsed;
+  } catch (error) {
+    console.log("Roadmap AI generation failed:", error.message);
+
+    throw new ApiError(
+      error.statusCode || 503,
+      error.statusCode === 502
+        ? error.message
+        : "AI roadmap generation failed. Please try again after some time."
+    );
+  }
 
   const finalDailyPlan = normalizeRoadmapDays(
-  parsedRoadmap.dailyPlan ||
+    parsedRoadmap.dailyPlan ||
     parsedRoadmap.days ||
     parsedRoadmap.roadmapDays ||
     parsedRoadmap.plan ||
     [],
-  durationInDays
-);
-
-if (!finalDailyPlan.length) {
-  throw new ApiError(
-    502,
-    "AI roadmap response did not contain a valid daily plan. Please try again."
+    durationInDays
   );
-}
+
+  if (!finalDailyPlan.length) {
+    throw new ApiError(
+      502,
+      "AI roadmap response did not contain a valid daily plan. Please try again."
+    );
+  }
 
   const roadmap = await Roadmap.create({
     user: user._id,
