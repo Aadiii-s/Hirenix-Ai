@@ -100,7 +100,6 @@ export const startMockInterview = asyncHandler(async (req, res) => {
     focusAreas: safeFocusAreas,
   });
 
-  let questions = [];
   let parsedQuestions = {};
 
   try {
@@ -127,6 +126,13 @@ export const startMockInterview = asyncHandler(async (req, res) => {
       "AI interview question generation failed. Please try again after some time."
     );
   }
+
+  const questions = normalizeGeneratedQuestions({
+    parsedQuestions,
+    normalizedInterviewType,
+    normalizedDifficulty,
+    safeNumberOfQuestions,
+  });
 
   const mockInterview = await MockInterview.create({
     user: req.user._id,
@@ -213,8 +219,6 @@ export const submitInterviewAnswer = asyncHandler(async (req, res) => {
     });
 
     parsedEvaluation = aiResult.parsed;
-
-    parsedQuestions = aiResult.parsed;
   } catch (error) {
     console.log("Answer evaluation failed:", error.message);
 
@@ -298,17 +302,17 @@ export const completeMockInterview = asyncHandler(async (req, res) => {
 
   try {
     const aiResult = await runLoggedAiJsonTask({
-  req,
-  module: "interview",
-  action: "interview_summary_generation",
-  prompt,
-  requestMeta: {
-    interviewId: id,
-  },
-  validateResponse: validateInterviewSummaryResponse,
-});
+      req,
+      module: "interview",
+      action: "interview_summary_generation",
+      prompt,
+      requestMeta: {
+        interviewId: id,
+      },
+      validateResponse: validateInterviewSummaryResponse,
+    });
 
-parsedSummary = aiResult.parsed;
+    parsedSummary = aiResult.parsed;
   } catch (error) {
     console.log("Interview summary generation failed:", error.message);
 

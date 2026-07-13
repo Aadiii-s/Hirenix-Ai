@@ -35,6 +35,10 @@ const interviewQuestionSchema = new mongoose.Schema(
       min: 0,
       max: 10,
     },
+    idealAnswer: {
+      type: String,
+      default: "",
+    },
 
     isAnswered: {
       type: Boolean,
@@ -77,7 +81,16 @@ const mockInterviewSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       enum: ["easy", "medium", "hard"],
-      default: "intermediate",
+      default: "medium", 
+    },
+    numberOfQuestions: {
+      type: Number,
+      default: 5,
+    },
+
+    focusAreas: {
+      type: [String],
+      default: [],
     },
 
     questions: {
