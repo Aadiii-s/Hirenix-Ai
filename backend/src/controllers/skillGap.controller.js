@@ -10,10 +10,8 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { buildSkillGapPrompt } from "../utils/skillGapPrompt.js";
-import {
-  generateAIContent,
-  parseAIJsonResponse,
-} from "../services/ai.service.js";
+import { runLoggedAiJsonTask } from "../utils/runLoggedAiJsonTask.js";
+import { validateSkillGapResponse } from "../utils/aiResponseValidators.js";
 
 const getDsaStatsForUser = async (userId) => {
   const totalQuestions = await DsaQuestion.countDocuments({ user: userId });
@@ -94,7 +92,6 @@ export const generateSkillGapAnalysis = asyncHandler(async (req, res) => {
     user: user._id,
   }).sort({ createdAt: -1 });
 
-
   const dsaStats = await getDsaStatsForUser(user._id);
   const interviewStats = await getInterviewStatsForUser(user._id);
 
@@ -110,21 +107,46 @@ export const generateSkillGapAnalysis = asyncHandler(async (req, res) => {
     interviewStats,
   });
 
-  const aiText = await generateAIContent(prompt);
-  const parsed = parseAIJsonResponse(aiText);
+  let parsed = {};
+  let aiText = "";
+
+  try {
+    const aiResult = await runLoggedAiJsonTask({
+      req,
+      module: "skill_gap",
+      action: "skill_gap_analysis",
+      prompt,
+      requestMeta: {
+        targetRole,
+      },
+      validateResponse: validateSkillGapResponse,
+    });
+
+    parsed = aiResult.parsed;
+    aiText = aiResult.aiText;
+  } catch (error) {
+    console.log("Skill gap analysis generation failed:", error.message);
+
+    throw new ApiError(
+      error.statusCode || 503,
+      error.statusCode === 502
+        ? error.message
+        : "AI skill gap analysis failed. Please try again after some time."
+    );
+  }
 
   const topThreeFocusAreas =
-  parsed.topThreeFocusAreas?.length > 0
-    ? parsed.topThreeFocusAreas
-        .slice(0, 3)
-        .map((focus) => (typeof focus === "string" ? focus : focus?.skill))
-        .filter(Boolean)
-    : parsed.prioritySkills?.length > 0
-    ? parsed.prioritySkills
-        .slice(0, 3)
-        .map((item) => (typeof item === "string" ? item : item?.skill))
-        .filter(Boolean)
-    : [];
+    parsed.topThreeFocusAreas?.length > 0
+      ? parsed.topThreeFocusAreas
+          .slice(0, 3)
+          .map((focus) => (typeof focus === "string" ? focus : focus?.skill))
+          .filter(Boolean)
+      : parsed.prioritySkills?.length > 0
+      ? parsed.prioritySkills
+          .slice(0, 3)
+          .map((item) => (typeof item === "string" ? item : item?.skill))
+          .filter(Boolean)
+      : [];
 
   const analysis = await SkillGapAnalysis.create({
     user: user._id,
@@ -136,7 +158,7 @@ export const generateSkillGapAnalysis = asyncHandler(async (req, res) => {
     weakSkills: parsed.weakSkills || [],
     strongSkills: parsed.strongSkills || [],
     prioritySkills: parsed.prioritySkills || [],
-    topThreeFocusAreas: parsed.topThreeFocusAreas || [],
+    topThreeFocusAreas,
     learningPlan: parsed.learningPlan || [],
     summary: parsed.summary || "",
     readinessImpact: parsed.readinessImpact || "medium",

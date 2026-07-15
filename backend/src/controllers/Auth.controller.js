@@ -4,8 +4,11 @@ import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
   requiredString,
+  requiredEmail,
+  requiredPassword,
   normalizeEnum,
   normalizeArray,
+  normalizeGraduationYear,
 } from "../utils/validators.js";
 
 const cookieOptions = {
@@ -56,12 +59,8 @@ const calculateProfileCompleted = (user) => {
 
 export const registerUser = asyncHandler(async (req, res) => {
   const fullName = requiredString(req.body.fullName, "Full name");
-  const email = requiredString(req.body.email, "Email").toLowerCase();
-  const password = requiredString(req.body.password, "Password");
-
-  if (password.length < 6) {
-    throw new ApiError(400, "Password must be at least 6 characters long");
-  }
+  const email = requiredEmail(req.body.email);
+  const password = requiredPassword(req.body.password);
 
   const existingUser = await User.findOne({ email });
 
@@ -95,7 +94,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 });
 
 export const loginUser = asyncHandler(async (req, res) => {
-  const email = requiredString(req.body.email, "Email").toLowerCase();
+  const email = requiredEmail(req.body.email);
   const password = requiredString(req.body.password, "Password");
 
   const user = await User.findOne({ email }).select("+password");
@@ -186,8 +185,11 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   }
 
   if (graduationYear !== undefined) {
-    user.graduationYear = String(graduationYear).trim();
+  const normalizedYear = normalizeGraduationYear(graduationYear);
+  if (normalizedYear !== undefined) {
+    user.graduationYear = normalizedYear;
   }
+}
 
   if (targetRole !== undefined) {
     user.targetRole = String(targetRole).trim();

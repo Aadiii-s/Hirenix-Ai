@@ -37,6 +37,7 @@ const safeNumber = (value, fallback = 0) => {
   return Number.isFinite(number) ? number : fallback;
 };
 
+const MAX_RESUME_CHARS = 12000;
 
 export const analyzeResume = asyncHandler(async (req, res) => {
   if (!req.file) {
@@ -67,13 +68,15 @@ export const analyzeResume = asyncHandler(async (req, res) => {
       );
     }
 
+    const safeResumeText = resumeText.slice(0, MAX_RESUME_CHARS);
+
     const user = req.user;
 
     const prompt = buildResumeAnalysisPrompt({
       fullName: user.fullName,
       targetRole,
       skills: user.skills || [],
-      resumeText,
+      resumeText: safeResumeText,
     });
 
     let aiText = "";
@@ -108,7 +111,7 @@ export const analyzeResume = asyncHandler(async (req, res) => {
     const analysis = await ResumeAnalysis.create({
       user: user._id,
       originalFileName: req.file.originalname,
-      resumeText,
+      resumeText: safeResumeText,
       targetRole,
       atsScore: safeNumber(parsedAnalysis.atsScore),
       summary: parsedAnalysis.summary || "",

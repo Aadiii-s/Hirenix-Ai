@@ -54,8 +54,9 @@ export const validateSkillGapResponse = (data) => {
   const hasRequiredSkills = Array.isArray(data.requiredSkills);
   const hasMissingSkills = Array.isArray(data.missingSkills);
   const hasPrioritySkills = Array.isArray(data.prioritySkills);
+  const hasLearningPlan = Array.isArray(data.learningPlan);
 
-  if (!hasRequiredSkills && !hasMissingSkills && !hasPrioritySkills) {
+  if (!hasRequiredSkills && !hasMissingSkills && !hasPrioritySkills && !hasLearningPlan) {
     throw new ApiError(
       502,
       "AI skill gap response is incomplete. Please try again."

@@ -116,16 +116,29 @@ export const generateAIContent = async (prompt) => {
       generationConfig: {
         temperature: 0.4,
         topP: 0.9,
-        maxOutputTokens: 4096,
+        maxOutputTokens: 8192,
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
       },
     });
 
     const result = await model.generateContent(String(prompt));
     const response = result.response;
+
+    const finishReason = response.candidates?.[0]?.finishReason;
     const text = response.text();
 
     if (!text || !text.trim()) {
       throw new ApiError(500, "AI returned empty response");
+    }
+
+    if (finishReason === "MAX_TOKENS") {
+      console.log("AI response truncated: hit maxOutputTokens limit");
+      throw new ApiError(
+        500,
+        "AI response was cut off before completing. Please try again."
+      );
     }
 
     return text.trim();
