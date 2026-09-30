@@ -14,7 +14,7 @@ import {
 const cookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -185,11 +185,11 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   }
 
   if (graduationYear !== undefined) {
-    const normalizedYear = normalizeGraduationYear(graduationYear);
-    if (normalizedYear !== undefined) {
-      user.graduationYear = normalizedYear;
-    }
+  const normalizedYear = normalizeGraduationYear(graduationYear);
+  if (normalizedYear !== undefined) {
+    user.graduationYear = normalizedYear;
   }
+}
 
   if (targetRole !== undefined) {
     user.targetRole = String(targetRole).trim();

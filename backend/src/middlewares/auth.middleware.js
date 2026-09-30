@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 import User from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
-import {asyncHandler} from "../utils/asyncHandler.js"
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const protect = asyncHandler(async (req, res, next) => {
   const token =
@@ -13,7 +13,17 @@ export const protect = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, "Unauthorized request: token is missing");
   }
 
-  const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+  let decodedToken;
+
+  try {
+    decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      throw new ApiError(401, "Session expired. Please log in again.");
+    }
+
+    throw new ApiError(401, "Invalid token. Please log in again.");
+  }
 
   const user = await User.findById(decodedToken.id);
 
