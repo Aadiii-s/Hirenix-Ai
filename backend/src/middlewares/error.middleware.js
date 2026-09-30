@@ -1,6 +1,20 @@
+import multer from "multer";
+
 const errorMiddleware = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
+
+  if (err instanceof multer.MulterError) {
+    statusCode = 400;
+
+    if (err.code === "LIMIT_FILE_SIZE") {
+      message = "File is too large. Maximum allowed size is 2MB.";
+    } else if (err.code === "LIMIT_UNEXPECTED_FILE") {
+      message = "Unexpected file field. Please check the upload field name.";
+    } else {
+      message = err.message || "File upload error";
+    }
+  }
 
   if (err.name === "CastError") {
     statusCode = 400;

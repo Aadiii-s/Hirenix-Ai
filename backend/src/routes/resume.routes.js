@@ -11,6 +11,7 @@ import {
 import { protect } from "../middlewares/auth.middleware.js";
 import { uploadResume } from "../middlewares/upload.middleware.js";
 import { withAiRequestLock } from "../utils/aiRequestLock.js";
+import { aiLimiter } from "../middlewares/rateLimiter.middleware.js";
 
 
 const router = Router();
@@ -20,6 +21,7 @@ router.use(protect);
 router.post(
   "/analyze",
   uploadResume.single("resume"),
+  aiLimiter,
   withAiRequestLock("resume_analysis"),
   analyzeResume
 );

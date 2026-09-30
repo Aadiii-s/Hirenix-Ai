@@ -21,18 +21,24 @@ const storage = multer.diskStorage({
 
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const fileExtension = path.extname(file.originalname);
-
-    cb(null, `${file.fieldname}-${uniqueSuffix}${fileExtension}`);
+    cb(null, `${file.fieldname}-${uniqueSuffix}.pdf`);
   },
 });
 
+const ALLOWED_MIMETYPE = "application/pdf";
+const ALLOWED_EXTENSION = ".pdf";
+
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype === "application/pdf") {
-    cb(null, true);
-  } else {
-    cb(new ApiError(400, "Only PDF files are allowed"), false);
+  const extension = path.extname(file.originalname || "").toLowerCase();
+
+  if (file.mimetype !== ALLOWED_MIMETYPE || extension !== ALLOWED_EXTENSION) {
+    return cb(
+      new ApiError(400, "Only PDF files are allowed"),
+      false
+    );
   }
+
+  cb(null, true);
 };
 
 export const uploadResume = multer({
@@ -40,5 +46,6 @@ export const uploadResume = multer({
   fileFilter,
   limits: {
     fileSize: 2 * 1024 * 1024,
+    files: 1,
   },
 });

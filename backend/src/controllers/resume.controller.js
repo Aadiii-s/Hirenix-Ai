@@ -57,7 +57,21 @@ export const analyzeResume = asyncHandler(async (req, res) => {
       "Software Developer";
 
     const fileBuffer = fs.readFileSync(filePath);
-    const pdfData = await pdfParse(fileBuffer);
+
+if (fileBuffer.length === 0) {
+  throw new ApiError(400, "Uploaded file is empty");
+}
+
+const isPdfSignature = fileBuffer.slice(0, 5).toString("utf8") === "%PDF-";
+
+if (!isPdfSignature) {
+  throw new ApiError(
+    400,
+    "Uploaded file is not a valid PDF. Please upload a genuine PDF file."
+  );
+}
+
+const pdfData = await pdfParse(fileBuffer);
 
     const resumeText = pdfData.text?.trim();
 

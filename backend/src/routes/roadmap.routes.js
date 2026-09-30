@@ -11,6 +11,7 @@ import {
 
 import { protect } from "../middlewares/auth.middleware.js";
 import { withAiRequestLock } from "../utils/aiRequestLock.js";
+import { aiLimiter } from "../middlewares/rateLimiter.middleware.js";
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.use(protect);
 
 router.post(
   "/generate",
+  aiLimiter,
   withAiRequestLock("roadmap_generation"),
   generateRoadmap
 );

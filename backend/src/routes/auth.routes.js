@@ -7,13 +7,14 @@ import {
   registerUser,
   updateUserProfile,
 } from "../controllers/auth.controller.js";
+import { authLimiter } from "../middlewares/rateLimiter.middleware.js";
 
 import { protect } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+router.post("/register",authLimiter, registerUser);
+router.post("/login",authLimiter, loginUser);
 router.post("/logout", protect, logoutUser);
 router.get("/me", protect, getCurrentUser);
 router.put("/profile", protect, updateUserProfile);

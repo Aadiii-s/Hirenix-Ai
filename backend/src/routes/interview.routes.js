@@ -13,6 +13,7 @@ import {
 
 import { protect } from "../middlewares/auth.middleware.js";
 import { withAiRequestLock } from "../utils/aiRequestLock.js";
+import { aiLimiter } from "../middlewares/rateLimiter.middleware.js";
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.get("/stats/summary", getMockInterviewStats);
 
 router.post(
   "/start",
+  aiLimiter,
   withAiRequestLock("interview_generation"),
   startMockInterview
 );
@@ -30,6 +32,7 @@ router.get("/latest", getLatestMockInterview);
 router.get("/:id", getMockInterviewById);
 router.post(
   "/:id/answer",
+  aiLimiter,
   withAiRequestLock("interview_answer_evaluation"),
   submitInterviewAnswer
 );

@@ -16,6 +16,7 @@ import aiLogRoutes from "./routes/aiLog.routes.js";
 
 import errorMiddleware from "./middlewares/error.middleware.js";
 import notFoundMiddleware from "./middlewares/notFound.middleware.js";
+import { apiLimiter } from "./middlewares/rateLimiter.middleware.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use("/api", apiLimiter);
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -42,7 +44,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/roadmaps", roadmapRoutes);
 app.use("/api/resumes", resumeRoutes);
 app.use("/api/dsa", dsaRoutes);
-app.use("/api/interviews",interviewRoutes);
+app.use("/api/interviews", interviewRoutes);
 app.use("/api/skill-gap", skillGapRoutes);
 app.use("/api/companies", companyRoutes);
 app.use("/api/analytics", analyticsRoutes);

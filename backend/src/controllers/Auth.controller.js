@@ -185,11 +185,11 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   }
 
   if (graduationYear !== undefined) {
-  const normalizedYear = normalizeGraduationYear(graduationYear);
-  if (normalizedYear !== undefined) {
-    user.graduationYear = normalizedYear;
+    const normalizedYear = normalizeGraduationYear(graduationYear);
+    if (normalizedYear !== undefined) {
+      user.graduationYear = normalizedYear;
+    }
   }
-}
 
   if (targetRole !== undefined) {
     user.targetRole = String(targetRole).trim();
